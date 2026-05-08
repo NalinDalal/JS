@@ -112,6 +112,7 @@ if (myBirthday) {
     myBirthday = false;  // Error!
 }
 ```
+---
 
 # Function
 Function are somethng that take some input and then return back an output
@@ -151,4 +152,74 @@ var y = "9";
 x < y;      // true, watch out!
 ```
 
+----
 
+# [Classes](./class.js)
+A class in a program is a definition of a "type" of custom data structure that includes both data and behaviors that operate on that data. Classes define how such a data structure works, but classes are not themselves concrete values. To get a concrete value that you can use in the program, a class must be instantiated (with the `new` keyword) one or more times.
+```js
+class Page {
+    constructor(text) {
+        this.text = text;   //data
+    }
+
+    print() {   //behaviour
+        console.log(this.text);
+    }
+}
+
+mathNotes = new Notebook()  //creates instance of class
+```
+
+
+you can have other features also:
+
+## Inheritance
+```js
+class Publication {
+    constructor(title,author,pubDate) {
+        this.title = title;
+        this.author = author;
+        this.pubDate = pubDate;
+    }
+
+    print() {
+        console.log(`
+            Title: ${ this.title }
+            By: ${ this.author }
+            ${ this.pubDate }
+        `);
+    }
+}
+
+class Book extends Publication {    //use the extends clause to extend the general definition of Publication to include additional behavior. 
+    constructor(bookDetails) {
+        super(
+            bookDetails.title,
+            bookDetails.author,
+            bookDetails.pubDate
+        );
+        this.publisher = bookDetails.publisher;
+        this.ISBN = bookDetails.ISBN;
+    }
+
+    print() {
+        super.print();
+        console.log(`
+            Publisher: ${ this.publisher }
+            ISBN: ${ this.ISBN }
+        `);
+    }
+}
+
+class BlogPost extends Publication {
+    constructor(title,author,pubDate,URL) {
+        super(title,author,pubDate);
+        this.URL = URL;
+    }
+
+    print() {
+        super.print();
+        console.log(this.URL);
+    }
+}
+``
