@@ -1,6 +1,6 @@
 # JavaScript Revision Plan
 
-**Goal:** Master 15 core JS concepts for interviews AND build real confidence through code.
+**Goal:** Master 15 core JS concepts + Web APIs for interviews AND build real confidence through code.
 
 **Resources:**
 - **Namaste JavaScript** (Akshay Saini) - Video explanations
@@ -9,7 +9,7 @@
 - **Ayush Notes** - Cross-check after understanding
 
 **Weekly Rhythm (45-60 mins/day):**
-- Mon-Wed: Watch Namaste JS + read YDKJS section
+- Mon-Wed: Watch Namaste JS + read YDKJS/MDN section
 - Thu: Run code examples, write 4-6 sentence explanation
 - Fri/Weekend: Build something using that week's concept
 
@@ -41,7 +41,7 @@
 
 ---
 
-## 12-Week Schedule
+## 14-Week Schedule
 
 ### Week 1: var/let/const
 
@@ -747,37 +747,225 @@ console.log(isEmail('test@example.com')); // true
 
 ---
 
-### Weeks 11-12: Build Phase + Interview Practice
+### Week 11: DOM API
 
-**Pick ONE project that uses ALL 15 concepts:**
+**Interview prep:**
+- Read MDN DOM documentation
+- Understand DOM tree, nodes, elements
+- Know querySelector vs getElementById vs getElementsByClassName
+
+**Code to run:**
+```js
+// Selecting elements
+const title = document.querySelector('h1');
+const items = document.querySelectorAll('.item');
+const byId = document.getElementById('app');
+
+// Creating elements
+const div = document.createElement('div');
+div.className = 'card';
+div.textContent = 'Hello';
+document.body.appendChild(div);
+
+// Modifying elements
+title.textContent = 'New Title';
+title.setAttribute('data-id', '123');
+title.classList.add('active');
+title.classList.toggle('hidden');
+
+// Event delegation
+document.querySelector('ul').addEventListener('click', (e) => {
+  if (e.target.tagName === 'LI') {
+    console.log('Clicked:', e.target.textContent);
+  }
+});
+```
+
+**Build: Todo List with DOM Manipulation**
+```js
+// todo-dom.js
+class TodoApp {
+  constructor(container) {
+    this.container = container;
+    this.todos = [];
+    this.render();
+  }
+  
+  add(text) {
+    this.todos.push({ id: Date.now(), text, done: false });
+    this.render();
+  }
+  
+  toggle(id) {
+    const todo = this.todos.find(t => t.id === id);
+    if (todo) todo.done = !todo.done;
+    this.render();
+  }
+  
+  remove(id) {
+    this.todos = this.todos.filter(t => t.id !== id);
+    this.render();
+  }
+  
+  render() {
+    this.container.innerHTML = this.todos.map(todo => `
+      <div class="todo ${todo.done ? 'done' : ''}">
+        <input type="checkbox" ${todo.done ? 'checked' : ''} 
+          data-id="${todo.id}">
+        <span>${todo.text}</span>
+        <button data-action="delete" data-id="${todo.id}">×</button>
+      </div>
+    `).join('');
+    
+    // Event delegation
+    this.container.addEventListener('click', (e) => {
+      const id = Number(e.target.dataset.id);
+      if (e.target.type === 'checkbox') this.toggle(id);
+      if (e.target.dataset.action === 'delete') this.remove(id);
+    });
+  }
+}
+
+// Usage
+const app = new TodoApp(document.getElementById('todos'));
+app.add('Learn DOM');
+app.add('Build project');
+```
+
+---
+
+### Week 12: Storage + Observer APIs
+
+**Interview prep:**
+- Read MDN Web Storage API
+- Read MDN Intersection Observer API
+- Know localStorage vs sessionStorage vs cookies
+- Understand observer pattern
+
+**Code to run:**
+```js
+// LocalStorage
+localStorage.setItem('user', JSON.stringify({ name: 'John' }));
+const user = JSON.parse(localStorage.getItem('user'));
+console.log(user.name); // "John"
+localStorage.removeItem('user');
+localStorage.clear();
+
+// SessionStorage (cleared when tab closes)
+sessionStorage.setItem('temp', 'data');
+
+// Intersection Observer
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      console.log('Element visible:', entry.target);
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.5 });
+
+document.querySelectorAll('.lazy').forEach(el => observer.observe(el));
+```
+
+**Build: Infinite Scroll with Lazy Loading**
+```js
+// infinite-scroll.js
+class InfiniteScroll {
+  constructor(container, loadMore) {
+    this.container = container;
+    this.loadMore = loadMore;
+    this.loading = false;
+    this.page = 1;
+    
+    this.observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !this.loading) {
+          this.fetchNext();
+        }
+      },
+      { rootMargin: '200px' }
+    );
+    
+    this.createSentinel();
+  }
+  
+  createSentinel() {
+    this.sentinel = document.createElement('div');
+    this.sentinel.className = 'sentinel';
+    this.container.appendChild(this.sentinel);
+    this.observer.observe(this.sentinel);
+  }
+  
+  async fetchNext() {
+    this.loading = true;
+    this.sentinel.textContent = 'Loading...';
+    
+    try {
+      const items = await this.loadMore(this.page);
+      this.page++;
+      
+      items.forEach(item => {
+        const el = document.createElement('div');
+        el.className = 'item';
+        el.textContent = item.title;
+        this.container.insertBefore(el, this.sentinel);
+      });
+      
+      this.sentinel.textContent = '';
+    } catch (err) {
+      this.sentinel.textContent = 'Error loading more';
+    }
+    
+    this.loading = false;
+  }
+}
+
+// Usage
+const scroll = new InfiniteScroll(
+  document.getElementById('list'),
+  async (page) => {
+    const res = await fetch(`/api/items?page=${page}`);
+    return res.json();
+  }
+);
+```
+
+---
+
+### Weeks 13-14: Build Phase + Interview Practice
+
+**Pick ONE project that uses ALL concepts (JS + Web APIs):**
 
 #### Option A: Personal Finance Tracker (Recommended)
-**Concepts used:** ALL of them
+**Concepts used:** ALL
 
 ```
 finance-tracker/
-├── index.html
-├── main.js          (modules, event listeners)
-├── storage.js       (closures, localStorage)
-├── transactions.js  (array methods, prototypes)
-├── ui.js            (DOM, this, callbacks)
-├── api.js           (fetch, async/await, promises)
-└── utils.js         (validation, coercion)
+├── index.html           (DOM)
+├── main.js              (modules, event listeners)
+├── storage.js           (closures, localStorage)
+├── transactions.js      (array methods, prototypes)
+├── ui.js                (DOM manipulation, this)
+├── api.js               (fetch, async/await, promises)
+├── charts.js            (Canvas API, observers)
+└── utils.js             (validation, coercion)
 ```
 
 **Features to build:**
-- Add/edit/delete transactions (closures for state)
+- Add/edit/delete transactions (closures, DOM)
 - Filter by date/type (array methods)
 - Monthly summary (reduce, coercion)
-- Export to CSV (file API, async)
+- Export to CSV (File API, async)
 - Search with debounce (closures, event loop)
-- LocalStorage persistence (callbacks)
+- LocalStorage persistence (Storage API)
+- Lazy load transaction history (Intersection Observer)
+- Responsive UI (DOM events, event delegation)
 
 #### Option B: Blog with Comments
-**Concepts used:** modules, closures, prototypes, async, fetch
+**Concepts used:** modules, closures, prototypes, async, fetch, DOM, Storage
 
 #### Option C: Quiz Game
-**Concepts used:** closures, event loop, promises, coercion, array methods
+**Concepts used:** closures, event loop, promises, coercion, array methods, DOM, Storage
 
 **Daily rhythm during build phase:**
 - Build for 30-40 min
@@ -805,7 +993,9 @@ finance-tracker/
 | 8 | Promises | ⬜ | API Client | ⬜ |
 | 9 | async/await, Fetch | ⬜ | Weather App | ⬜ |
 | 10 | Modules (ESM) | ⬜ | Utils Library | ⬜ |
-| 11-12 | **BUILD PHASE** | ⬜ | Full Project | ⬜ |
+| 11 | DOM API | ⬜ | Todo List | ⬜ |
+| 12 | Storage + Observer | ⬜ | Infinite Scroll | ⬜ |
+| 13-14 | **BUILD PHASE** | ⬜ | Full Project | ⬜ |
 
 ---
 
@@ -813,9 +1003,44 @@ finance-tracker/
 
 - **Namaste JS** is good for concepts 1-5, 10-13
 - **YDKJS** is essential for concepts 5-9 (read chapters, not whole book)
-- **MDN** fills gaps for event loop, fetch, modules
+- **MDN** fills gaps for event loop, fetch, modules, and ALL Web APIs
 - **Don't skip building** - watching ≠ confidence
 - **Don't skip explanations** - building ≠ interview ready
 - **It's okay to Google** - professionals do it daily
 - **Break things on purpose** - understand errors, don't fear them
 - **Each week's build becomes part of your final project**
+- **Web APIs** (Weeks 11-12) bridge core JS to real browser apps
+
+---
+
+## Interview Confidence Check
+
+After 14 weeks, you should be able to:
+
+**Concepts (interview):**
+- [ ] Explain var/let/const differences and TDZ
+- [ ] Explain lexical scope and scope chain
+- [ ] Explain closures with a real example
+- [ ] Explain the 4 rules of `this`
+- [ ] Explain prototype chain and `new` keyword
+- [ ] Explain coercion and == vs ===
+- [ ] Explain event loop, microtask vs macrotask
+- [ ] Explain promises (states, chaining, error handling)
+- [ ] Explain async/await and when to use Promise.all
+- [ ] Explain ESM modules
+
+**Web APIs (interview + practical):**
+- [ ] Manipulate DOM efficiently (querySelector, event delegation)
+- [ ] Use localStorage for persistence
+- [ ] Implement lazy loading with Intersection Observer
+- [ ] Handle file uploads with File API
+- [ ] Understand Canvas basics for drawing
+
+**Building (confidence):**
+- [ ] Build a small app from scratch without tutorials
+- [ ] Fetch data from an API and handle errors
+- [ ] Debug scope-related issues in your code
+- [ ] Read someone else's code and understand it
+- [ ] Use closures, prototypes, and async code naturally
+
+**If you can do both, you're ready.**
