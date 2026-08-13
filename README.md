@@ -20,7 +20,8 @@ js-master-notes/
 ├── 08-error-handling/       # errors.md
 ├── 09-modern-patterns/      # modern-syntax.md + js-lectures-extras.md
 ├── 10-auth-security/        # auth-security.md (JWT, sessions, OAuth, WS, attacks)
-└── 11-webrtc/               # webrtc.md (P2P media/data, signaling, STUN/TURN)
+├── 11-webrtc/               # webrtc.md (P2P media/data, signaling, STUN/TURN)
+└── 12-websockets/           # websockets.md (protocol, rooms, heartbeat, auth, scaling)
 ```
 
 Every module ships TWO interview artifacts: a code-style `*-interview-*.js` (runnable) and a text question bank `*-questions.js` (say it out loud).
@@ -42,6 +43,7 @@ Every module ships TWO interview artifacts: a code-style `*-interview-*.js` (run
 | **09-modern-patterns** | Destructuring, optional chaining, nullish coalescing, spread, regex, dates, debounce/throttle | [modern-syntax.md](09-modern-patterns/modern-syntax.md) (1272 lines) + [js-lectures-extras.md](09-modern-patterns/js-lectures-extras.md) (448 lines) | Ongoing |
 | **10-auth-security** | JWT (structure/signing/verification), sessions, refresh rotation, password hashing, OAuth2+PKCE, WebSocket auth, XSS/CSRF/CORS, token storage | [auth-security.md](10-auth-security/auth-security.md) + 12 code files (zero deps, Node built-ins) | Ongoing |
 | **11-webrtc** | P2P media/data, signaling, SDP/ICE, STUN/TURN, DataChannels, DTLS-SRTP security | [webrtc.md](11-webrtc/webrtc.md) + 8 code files (zero deps, Node built-ins) | Ongoing |
+| **12-websockets** | WebSocket protocol, rooms, broadcasting, heartbeat, auth patterns, reconnection, scaling | [websockets.md](12-websockets/websockets.md) (146 lines) + 7 code files (zero deps, Node built-ins) | Ongoing |
 
 ---
 
@@ -134,4 +136,14 @@ Every module ships TWO interview artifacts: a code-style `*-interview-*.js` (run
 - [06-datachannel-simulation.js](11-webrtc/06-datachannel-simulation.js) — reliable vs unreliable, ordered vs unordered, backpressure
 - [07-webrtc-security.js](11-webrtc/07-webrtc-security.js) — DTLS-SRTP key derivation, threat model, why signaling can't read media
 - [08-interview-webrtc.js](11-webrtc/08-interview-webrtc.js) — 14 Q&A to say out loud
+
+### 12-websockets
+- [websockets.md](12-websockets/websockets.md) — WebSocket protocol overview, zero-dependency server, rooms/broadcasting, heartbeat/keepalive, auth patterns (query/cookie/subprotocol), client reconnection, scaling (sticky sessions, pub/sub), WebSocket vs SSE vs long-polling
+- [01-websocket-protocol.js](12-websockets/01-websocket-protocol.js) — minimal echo server: HTTP upgrade, frame parsing, masked client frames
+- [02-rooms-broadcasting.js](12-websockets/02-rooms-broadcasting.js) — room management, broadcast, join/leave/message protocol
+- [03-heartbeat.js](12-websockets/03-heartbeat.js) — ping/pong keepalive, dead connection detection and timeout
+- [04-auth.js](12-websockets/04-auth.js) — handshake-time auth: query token, cookie, subprotocol, mid-session expiry
+- [05-client.js](12-websockets/05-client.js) — reconnecting client with exponential backoff + jitter, message queue
+- [06-scaling.js](12-websockets/06-scaling.js) — sticky sessions, pub/sub broker simulation, multi-process fan-out
+- [07-interview-websockets.js](12-websockets/07-interview-websockets.js) — 14 Q&A to say out loud
 
