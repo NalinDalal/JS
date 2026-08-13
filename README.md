@@ -18,7 +18,8 @@ js-master-notes/
 ├── 06-collections/          # collections.md
 ├── 07-web-apis/             # web-apis.md
 ├── 08-error-handling/       # errors.md
-└── 09-modern-patterns/      # modern-syntax.md + js-lectures-extras.md
+├── 09-modern-patterns/      # modern-syntax.md + js-lectures-extras.md
+└── 10-auth-security/        # auth-security.md (JWT, sessions, OAuth, WS, attacks)
 ```
 
 ---
@@ -36,6 +37,7 @@ js-master-notes/
 | **07-web-apis** | DOM, Events, Storage, IntersectionObserver, File API, Canvas | `web-apis.md` (1125 lines) | Week 11-12 |
 | **08-error-handling** | try/catch/finally, Error types, stack traces, debugging | `errors.md` (613 lines) | Ongoing |
 | **09-modern-patterns** | Destructuring, optional chaining, nullish coalescing, spread, regex, dates, debounce/throttle | `modern-syntax.md` (1262 lines) + `js-lectures-extras.md` (448 lines) | Ongoing |
+| **10-auth-security** | JWT (structure/signing/verification), sessions, refresh rotation, password hashing, OAuth2+PKCE, WebSocket auth, XSS/CSRF/CORS, token storage | `auth-security.md` + 12 code files (zero deps, Node built-ins) | Ongoing |
 
 ---
 
@@ -93,4 +95,19 @@ js-master-notes/
 ### 09-modern-patterns
 - `modern-syntax.md` — Destructuring, spread/rest, template literals, default params, arrow functions, for...of, optional chaining, nullish coalescing, regex, Date/Time, functional patterns, debounce & throttle
 - `js-lectures-extras.md` — delete keyword, NodeList vs HTMLCollection, self keyword, Draggable API, FormData API, Calendar project, LeaderBoard project, practical DOM patterns
+
+### 10-auth-security
+- `auth-security.md` — Auth vs authorization, session vs token, JWT structure (header/payload/signature), HS256 vs RS256, verification + claims, refresh rotation, password hashing/salting/timing-safe compare, OAuth 2.0 + PKCE, WebSocket auth, token storage strategy, XSS/CSRF/CORS/CSP
+- `01-auth-concepts.js` — AuthN vs AuthZ, session vs JWT comparison
+- `02-jwt-structure.js` — JWT built from scratch, tamper test
+- `03-jwt-signing.js` — HS256 vs RS256 with Node crypto
+- `04-jwt-verification.js` — 3-step verification gauntlet (signature → alg → claims)
+- `05-session-auth.js` — stateful sessions, revocation, expiry
+- `06-http-auth-middleware.js` — runnable HTTP server: register/login/me/refresh-with-rotation/logout
+- `07-password-hashing.js` — scrypt + salt + timing-safe compare
+- `08-oauth-pkce.js` — authorization code flow, verifier/challenge, replay protection
+- `09-websocket-auth.js` — zero-dep WS server: handshake token auth, masked frames, ping/pong, mid-session expiry (4001)
+- `10-token-storage.js` — storage trade-offs + 401→refresh→replay interceptor
+- `11-web-attacks.js` — XSS, CSRF, SameSite, CORS, security headers
+- `12-interview-questions.js` — 18 Q&A to say out loud
 
