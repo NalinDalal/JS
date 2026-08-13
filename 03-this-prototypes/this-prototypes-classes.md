@@ -114,6 +114,14 @@ obj.arrow.call({ name: 'Override' });   // undefined (call/apply/bind don't affe
 new binding > explicit binding > implicit binding > default binding
 ```
 
+### Gotchas / Edge Cases
+
+- `this` is decided at **call time**: `user.greet` and `const fn = user.greet` are the same function, but calling the stored copy loses the implicit binding (→ `undefined` in strict mode — the classic "lost binding" bug when passing methods to callbacks).
+- Arrow functions ignore `call`/`apply`/`bind`'s `this` **and** can't be used with `new` (`TypeError: not a constructor`) — they only have lexical `this`.
+- In strict mode, the default binding is `undefined` (the code *crashes* on `this.x` instead of silently touching the global) — enabling `'use strict'` surfaces these bugs.
+- Inline DOM handlers (`onclick="handler()"`) bind `this` to the element; `addEventListener` handlers get `this = e.currentTarget` (unless the handler is an arrow).
+- `setTimeout(obj.method, 1000)` loses `this` — pass `() => obj.method()` or `obj.method.bind(obj)`.
+
 ---
 
 ## 3.2 call, apply, bind
@@ -170,6 +178,14 @@ function Puppy(name) {
   this.isPuppy = true;
 }
 ```
+
+### Gotchas / Edge Cases
+
+- `bind` returns a **new function** — you can't `removeEventListener` a bound handler unless you keep the bound reference.
+- Passing `null`/`undefined` as `thisArg` falls back to the **global object** (sloppy mode) or stays `undefined` (strict) — a silent `this` bug if the function unexpectedly uses `this`.
+- `apply` accepts array-**likes**, but spread (`fn(...args)`) is the modern equivalent — it also works on arbitrary iterables.
+- `call`/`apply`/`bind`'s `this` is **ignored** by arrow functions (see 3.1).
+- `Math.max.apply(null, nums)` is the classic apply hack; `Math.max(...nums)` reads better — but `...` throws on huge arrays (call-stack limit), while `apply` handles larger ones.
 
 ---
 
@@ -255,6 +271,15 @@ alice.hasOwnProperty('greet'); // false (inherited)
 'greet' in alice; // true (own or inherited)
 ```
 
+### Gotchas / Edge Cases
+
+- `for...in` iterates **inherited** enumerable properties too — not just own ones — and is why order of keys differs from `Object.keys()`.
+- `Object.create(null)` objects have **no `toString`/`hasOwnProperty`** — console logging and `obj.hasOwnProperty(...)` (the *method*) crash; use `Object.hasOwn(obj, key)` (safe everywhere).
+- **Shadowing**: `obj.x = 1` creates an *own* property that hides a prototype `x` — it never overwrites the prototype. `delete obj.x` re-reveals the inherited one.
+- Mutating `Object.prototype` (adding properties to it) affects **every object in the page**, including library internals — never do it.
+- `__proto__` is a legacy accessor: it fails on `Object.create(null)` objects, and changing it on plain objects puts the engine in de-optimized dictionary mode. Prefer `Object.getPrototypeOf`/`Object.setPrototypeOf` (and rarely set it at all).
+- Reassigning `Constructor.prototype` after instances exist **doesn't update them** — `instanceof`/lookup follow the *new* prototype; existing instances keep the old one.
+
 ---
 
 ## 3.4 The `new` Keyword
@@ -316,6 +341,14 @@ function AlsoWeird() {
 const aw = new AlsoWeird();
 aw; // { a: 1 }
 ```
+
+### Gotchas / Edge Cases
+
+- Calling a **class** without `new` throws `TypeError`; calling a plain function constructor without `new` sets `this` to the global (sloppy) — the `myNew` helper's step 4 is why `result instanceof Object` decides: an explicit **object** return wins, a primitive return is ignored.
+- Arrow functions have **no `[[Construct]]`** — `new (() => {})` throws despite ordinary function-looking syntax.
+- `new.target` lets a function detect it was called with `new` — useful for "callable both ways" helpers or to forbid direct calls.
+- A returning-object constructor means `instanceof` is still fine, but the returned object's prototype is the plain object's, not `Constructor.prototype`.
+- Binding `Constructor.prototype` to a *new object* (`Foo.prototype = { ... }`) rewires future instances — and `instanceof` uses the chain, not `constructor`.
 
 ---
 
@@ -463,6 +496,16 @@ obj instanceof Object; // true
 | `instanceof` | Yes | Yes |
 | `extends` | Manual `Object.create()` | Built-in keyword |
 
+### Gotchas / Edge Cases
+
+- Class declarations are **not hoisted** (TDZ) — referencing the class before its line throws `ReferenceError` (function constructors were hoisted).
+- In a derived constructor you **must call `super()` before touching `this`** — `this.something = x` before `super()` is a `ReferenceError`.
+- Class **methods are not bound**: extracting `const m = obj.method` and calling it loses `this` — bind in the constructor or use arrow class fields.
+- `static` methods' `this` is the **class itself**, not an instance — calling them via an instance throws.
+- Private `#fields` are skipped by `for...in`, `Object.keys()`, and `JSON.stringify()`; accessing them from outside is a `SyntaxError` — they're also not visible in `Object.getOwnPropertyNames`.
+- **Field initializers run before the constructor body** (right after `super()` for derived classes) — a field reading `this.x` sees a different state than the constructor's later assignments.
+- `extends` works with any callable constructor (even a function or expression), not just classes.
+
 ---
 
 ## Interview Questions
@@ -535,3 +578,13 @@ Arrow functions use **lexical `this`** — they capture `this` from the enclosin
 ---
 
 *Sources: MDN Working with objects, MDN Using classes, You Don't Know JS: Objects & Classes (ch1-5)*
+
+---
+
+## Question Bank
+
+Say each answer out loud, then verify with the code file:
+
+```
+node 07-interview-questions.js
+```
