@@ -5,7 +5,7 @@
  * Run: node 01-auth-concepts.js
  */
 
-console.log("--- Authentication vs Authorization ---");
+// --- Authentication vs Authorization ---
 
 // Authentication: verifying WHO you are
 function authenticate(credentials) {
@@ -44,25 +44,15 @@ console.log(handleRequest(mallory, "read:posts")); // 401
 console.log(handleRequest(alice, "delete:posts")); // 403
 console.log(handleRequest(alice, "read:posts")); // 200
 
-console.log("\n--- Session-based vs Token-based (comparison) ---");
+// --- Session-based vs Token-based (comparison) ---
 
-const compare = {
-  "Where state lives": "server (memory/Redis/DB)",
-  "What client sends": "opaque session id in cookie",
-  "Server work per request": "lookup session in store (I/O)",
-  "Revocation": "instant — delete the session",
-  "Scaling": "needs shared store across servers",
-  "CSRF risk": "cookies auto-attach — needs SameSite/CSRF tokens",
-  "Stateless": "no",
-  "JWT": "stateless",
-  "Client sends": "Bearer token (self-contained)",
-  "Server work per request": "verify signature only (CPU)",
-  "Revocation": "hard before exp — needs deny-list/rotation",
-  "Scaling": "no shared storage needed",
-  "CSRF risk": "low with Authorization header",
-  "Stateless": "yes",
-};
-
-for (const [k, v] of Object.entries(compare)) console.log(`${k}: ${v}`);
+// Comparison table (see auth-security.md 10.2 for full prose):
+//   Where state lives:      server (memory/Redis/DB)  | JWT: stateless
+//   What client sends:      opaque session id in cookie | Bearer token (self-contained)
+//   Server work per request: lookup session in store (I/O) | verify signature only (CPU)
+//   Revocation:              instant — delete the session | hard before exp — needs deny-list/rotation
+//   Scaling:                 needs shared store across servers | no shared storage needed
+//   CSRF risk:               cookies auto-attach — needs SameSite/CSRF tokens | low with Authorization header
+//   Stateless:               no | yes
 
 // Rule of thumb: sessions = revocable web app; JWT = stateless/API/microservices

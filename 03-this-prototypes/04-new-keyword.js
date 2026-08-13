@@ -6,7 +6,7 @@
  */
 
 // --- Basic new ---
-console.log("--- Basic new ---");
+// --- Basic new ---
 function User(name) {
   this.name = name;
 }
@@ -19,7 +19,7 @@ console.log(bob.sayHi()); // "Hi, I'm Bob"
 console.log(bob instanceof User); // true
 
 // --- Manual implementation of `new` ---
-console.log("\n--- Manual myNew ---");
+// --- Manual myNew ---
 function myNew(Constructor, ...args) {
   const obj = Object.create(Constructor.prototype); // Step 1 + 2
   const result = Constructor.apply(obj, args); // Step 3
@@ -31,7 +31,7 @@ console.log(carol.sayHi()); // "Hi, I'm Carol"
 console.log(carol instanceof User); // true
 
 // --- Constructor returning an object ---
-console.log("\n--- Constructor returning object ---");
+// --- Constructor returning object ---
 function Weird() {
   this.a = 1;
   return { b: 2 }; // returns this object instead
@@ -42,7 +42,7 @@ console.log(w); // { b: 2 }
 console.log(w.a); // undefined
 
 // --- Constructor returning a primitive (ignored) ---
-console.log("\n--- Constructor returning primitive ---");
+// --- Constructor returning primitive ---
 function AlsoWeird() {
   this.a = 1;
   return 42; // primitive — ignored

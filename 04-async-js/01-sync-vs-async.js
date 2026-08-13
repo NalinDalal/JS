@@ -5,19 +5,19 @@
  * Run: node 01-sync-vs-async.js
  */
 
-console.log("--- Synchronous code ---");
+// --- Synchronous code ---
 console.log("A");
 console.log("B");
 console.log("C");
 // Output: A → B → C
 
-console.log("\n--- Asynchronous code ---");
+// --- Asynchronous code ---
 console.log("A");
 setTimeout(() => console.log("B"), 0);
 console.log("C");
 // Output: A → C → B
 
-console.log("\n--- Single-threaded proof ---");
+// --- Single-threaded proof ---
 console.log("start");
 const start = Date.now();
 while (Date.now() - start < 1500) {} // block for 1.5s

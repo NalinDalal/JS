@@ -5,7 +5,7 @@
  * Paste in browser DevTools console.
  */
 
-console.log("--- MutationObserver (watch DOM changes) ---");
+// --- MutationObserver (watch DOM changes) ---
 
 /*
 const target = document.getElementById("comments");
@@ -34,13 +34,13 @@ mutationObserver.observe(target, {
 // Later: mutationObserver.disconnect();
 */
 
-console.log("--- MutationObserver use cases ---");
-console.log("1. Detect script injection (XSS monitoring)");
-console.log("2. React to DOM framework updates");
-console.log("3. Auto-resize textareas");
-console.log("4. Detect element removal");
+// --- MutationObserver use cases ---
+// 1. Detect script injection (XSS monitoring)
+// 2. React to DOM framework updates
+// 3. Auto-resize textareas
+// 4. Detect element removal
 
-console.log("\n--- ResizeObserver ---");
+// --- ResizeObserver ---
 /*
 const resizeObserver = new ResizeObserver((entries) => {
   for (const entry of entries) {
@@ -54,7 +54,7 @@ resizeObserver.observe(document.getElementById("resizable-box"));
 // Also observe border-box: entry.borderBoxSize, device-pixel: entry.devicePixelContentBoxSize
 */
 
-console.log("\n--- Comparison ---");
-console.log("MutationObserver : DOM structure changes");
-console.log("ResizeObserver   : Element size changes");
-console.log("IntersectionObs  : Element visibility in viewport");
+// --- Comparison ---
+// MutationObserver : DOM structure changes
+// ResizeObserver   : Element size changes
+// IntersectionObs  : Element visibility in viewport

@@ -43,7 +43,7 @@ const jwt = `${signingInput}.${signature}`;
 console.log("JWT:\n", jwt);
 console.log("\nSegments:", jwt.split(".").length); // 3
 
-console.log("\n--- Decoding WITHOUT verification (read-only!) ---");
+// --- Decoding WITHOUT verification (read-only!) ---
 const [h, p, s] = jwt.split(".");
 console.log("header:", JSON.parse(Buffer.from(h, "base64url").toString()));
 console.log("payload:", JSON.parse(Buffer.from(p, "base64url").toString()));
@@ -52,7 +52,7 @@ console.log("payload:", JSON.parse(Buffer.from(p, "base64url").toString()));
 // Key fact: JWT is signed, not encrypted.
 // Payload is base64url — decode it, read it, modify it (then the signature fails).
 
-console.log("\n--- Tamper test ---");
+// --- Tamper test ---
 const tamperedPayload = encodeSegment({ ...payload, name: "Mallory" });
 const tampered = `${encodedHeader}.${tamperedPayload}.${signature}`; // old signature!
 const verify = (jwt, secret) => {

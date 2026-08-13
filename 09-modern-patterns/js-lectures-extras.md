@@ -46,6 +46,13 @@ delete obj["c"];
 console.log(obj); // {}
 ```
 
+#### Gotchas / Edge Cases
+
+- `delete` returns `true` for successful property removal, but **`false`** for non-configurable properties (frozen objects, prototype properties). In strict mode it throws `TypeError` instead.
+- `delete` on a `var`-declared variable returns `false` in sloppy mode and throws in strict mode — but the variable still exists.
+- `let`/`const` declarations in blocks cannot be deleted (SyntaxError in strict mode).
+- `delete` only removes **own** properties from objects. Prototype-chain properties are unaffected unless you explicitly `delete` them on the prototype.
+
 ---
 
 ## E2. NodeList vs HTMLCollection
@@ -93,6 +100,13 @@ const arr2 = [...liveDivs];
 const arr3 = Array.from(allDivs);
 ```
 
+#### Gotchas / Edge Cases
+
+- `querySelectorAll()` returns a **static** NodeList — it does NOT update when the DOM changes. If you need a live list, use `getElementsBy*` and convert to an array.
+- `getElementsByClassName()` and `getElementsByTagName()` return **live** HTMLCollections — they auto-update when elements are added/removed, which can cause surprising length changes during iteration.
+- HTMLCollection has **no** `forEach`, `entries()`, `keys()`, or `values()`. Convert to an array first: `Array.from(collection)` or `[...collection]`.
+- `childNodes` includes text nodes and comments (whitespace counts). Use `children` for Element-only children.
+
 ---
 
 ## E3. The `self` Keyword
@@ -123,6 +137,13 @@ console.log(globalThis);    // Window (browser), global (Node), WorkerGlobalScop
 // self.onmessage = (e) => { self.postMessage("response"); };
 ```
 
+#### Gotchas / Edge Cases
+
+- In **Node.js**, `self` is not defined. Use `globalThis` for cross-environment code.
+- `window.self` always refers to the same window object — `window.self === window` is always `true`. It is mainly useful in Web Workers where `window` is not available.
+- `self` and `window` are interchangeable in the main browser thread, but in a Worker you only have `self`.
+- `globalThis` is the modern, standard way to reference the global object in any environment (browser, Node, Worker).
+
 ---
 
 ## E4. `document.write()` vs `innerHTML` vs `textContent`
@@ -152,6 +173,13 @@ document.write("Hello"); // Before page load: works
 // After page load: overwrites entire document!
 ```
 
+#### Gotchas / Edge Cases
+
+- `document.write()` **clears the entire document** if called after the page has finished loading. It is safe only during initial parsing — never use it in event handlers or async code.
+- `innerHTML` parses HTML and executes `<script>` tags. Never assign unsanitized user input to `innerHTML` — it is a major XSS vector.
+- `textContent` is the **safest** option for inserting user-generated text — it treats everything as plain text, no HTML parsing, no script execution.
+- `innerText` respects CSS `display` and computed styles (e.g., `display: none` elements are skipped). It is slower than `textContent` because it triggers layout reflow.
+
 ---
 
 ## E5. Practical Patterns from JS_LECTURES
@@ -172,48 +200,11 @@ list.addEventListener("click", (e) => {
 });
 ```
 
-### Form Validation Pattern
-```js
-const form = document.querySelector("form");
-const emailInput = form.querySelector('input[type="email"]');
+#### Gotchas / Edge Cases
 
-function validateEmail(email) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-}
-
-form.addEventListener("submit", (e) => {
-  e.preventDefault();
-  
-  if (!validateEmail(emailInput.value)) {
-    emailInput.classList.add("error");
-    return;
-  }
-  
-  emailInput.classList.remove("error");
-  // Submit form
-});
-```
-
-### Calculator (Method Chaining with `this`)
-```js
-function Calculator(value = 0) {
-  this.value = value;
-  this.add = (n) => { this.value += n; return this; };
-  this.subtract = (n) => { this.value -= n; return this; };
-  this.multiply = (n) => { this.value *= n; return this; };
-  this.divide = (n) => { this.value /= n; return this; };
-  this.getResult = () => this.value;
-  this.reset = () => { this.value = 0; return this; };
-}
-
-const result = new Calculator()
-  .add(10)
-  .multiply(2)
-  .subtract(5)
-  .divide(3)
-  .getResult();
-console.log(result); // 5
-```
+- Event delegation only works if the event **bubbles** up the DOM. `focus`, `blur`, and `mouseenter`/`mouseleave` do not bubble — use `focusin`/`focusout` or attach listeners directly.
+- `e.target` is the actual clicked element; `e.currentTarget` is the element the listener is attached to. In delegation, always check `e.target` (or a parent) against your selector.
+- `dataset` keys are camelCase in JS (`data-user-id` → `dataset.userId`), but kebab-case in HTML.
 
 ---
 
@@ -258,6 +249,13 @@ target.addEventListener("drop", (e) => {
 });
 ```
 
+#### Gotchas / Edge Cases
+
+- `dragover` **must** call `e.preventDefault()` to signal that the drop target accepts drops. Without it, the `drop` event never fires.
+- `dataTransfer.setData()` / `getData()` are the only safe way to pass data during drag — do **not** rely on DOM properties or global variables.
+- The `drag` event fires continuously during the drag operation and can hurt performance. Use `dragstart`/`dragend` for visual state changes instead.
+- Drag and drop does not work on mobile touch screens without a polyfill (it is a desktop-only API by design).
+
 ---
 
 ## E7. FormData API
@@ -295,6 +293,13 @@ for (const [key, value] of fd.entries()) {
 const obj = Object.fromEntries(fd.entries());
 console.log(obj); // { name: "John", age: "25" }
 ```
+
+#### Gotchas / Edge Cases
+
+- `FormData` values are **always strings** (or `File`/`Blob` objects for files). Even numbers submitted as strings come back as strings — parse with `Number()` or `+value` if needed.
+- Appending the same key multiple times creates **multiple entries** with the same name. Use `fd.getAll("key")` to retrieve all values.
+- `fetch()` automatically sets `Content-Type: multipart/form-data` with the correct boundary when the body is `FormData`. Do NOT set it manually.
+- `Object.fromEntries(fd.entries())` converts values to strings. File objects become `[object File]` strings — handle them separately.
 
 ---
 
@@ -377,6 +382,13 @@ class Calendar {
 const cal = new Calendar(document.getElementById("calendar"));
 ```
 
+#### Gotchas / Edge Cases
+
+- `new Date(year, month + 1, 0).getDate()` correctly gives the last day of the month, but `month` must be 0-indexed. Passing month `12` gives January of the next year.
+- `setMonth()` mutates the Date in place and can overflow into the next month/year. If you need immutability, create a new `Date` instead of mutating.
+- Event delegation on the calendar grid is safer than attaching listeners to every `.day` cell — cells are recreated on every render.
+- `toLocaleString("default", { month: "long" })` returns the month name in the user's locale — great for i18n, but not suitable for fixed English labels unless you pin the locale.
+
 ---
 
 ## E9. LeaderBoard Project
@@ -434,6 +446,13 @@ board.addPlayer("Bob", 200);
 board.addPlayer("Charlie", 120);
 // Sorted: Bob 200, Alice 150, Charlie 120
 ```
+
+#### Gotchas / Edge Cases
+
+- `Array.prototype.sort()` **mutates the original array**. If you need to keep the original order, spread first: `[...this.players].sort(...)`.
+- The compare function must return a **number** (negative, zero, positive). Returning `true`/`false` works in some engines but is unreliable.
+- Re-rendering the entire `innerHTML` on every update destroys and recreates DOM nodes — event listeners on children are lost. Re-attach after render or use event delegation.
+- Scores as strings (`"150"` vs `"200"`) sort lexicographically, not numerically. Always coerce to `Number()` before comparing.
 
 ---
 

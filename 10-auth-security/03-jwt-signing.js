@@ -47,8 +47,8 @@ const valid = crypto.verify(
 // (forging requires the private key, which never leaves the auth server)
 console.log("RS256 verified with public key:", valid); // true
 
-console.log("\n--- Comparison ---");
+// --- Comparison ---
 // HS256:  symmetric, 1 shared secret, fast, forgery risk if the secret leaks — best for a single service
 // RS256:  asymmetric, key pair, verifiers only need the public key — microservices-safe
 // alg=none attack: never trust the header's alg — always pin the expected algorithm
-console.log("HS256 uses 1 shared secret; RS256 verifies with the public key only");
+// HS256 uses 1 shared secret; RS256 verifies with the public key only

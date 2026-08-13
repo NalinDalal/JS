@@ -223,11 +223,11 @@ The convention: first argument is always `err` (null on success), second is the 
 
 const fs = require("fs");
 
-console.log("1: before readFile");
+// 1: before readFile
 fs.readFile(__filename, "utf8", (err, data) => {
-  console.log("3: inside callback");
+  // 3: inside callback
 });
-console.log("2: after readFile");
+// 2: after readFile
 
 // Output: 1 → 2 → 3
 // The callback runs after the file I/O, not inline
@@ -630,7 +630,7 @@ fetch("/api/slow", { signal: controller.signal })
   .then(data => console.log(data))
   .catch(err => {
     if (err.name === "AbortError") {
-      console.log("Request was cancelled");
+      // Request was cancelled
     } else {
       console.error("Network error:", err);
     }

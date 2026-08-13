@@ -6,7 +6,7 @@
  */
 
 // --- Creating a Promise ---
-console.log("--- Creating a Promise ---");
+// --- Creating a Promise ---
 const promise = new Promise((resolve, reject) => {
   const success = true;
   if (success) {
@@ -18,7 +18,7 @@ const promise = new Promise((resolve, reject) => {
 promise.then((val) => console.log("Resolved:", val));
 
 // --- .then() Chaining ---
-console.log("\n--- Promise chaining ---");
+// --- Promise chaining ---
 function fetchUser(id) {
   return Promise.resolve({ id, name: "Alice" });
 }
@@ -37,7 +37,7 @@ fetchUser(1)
   .finally(() => console.log("Chain cleanup"));
 
 // --- Promise.all ---
-console.log("\n--- Promise.all ---");
+// --- Promise.all ---
 Promise.all([
   new Promise((resolve) => setTimeout(() => resolve("a"), 200)),
   new Promise((resolve) => setTimeout(() => resolve("b"), 100)),
@@ -53,7 +53,7 @@ Promise.all([
 // Output: "b" (rejects as soon as any promise rejects)
 
 // --- Promise.allSettled ---
-console.log("\n--- Promise.allSettled ---");
+// --- Promise.allSettled ---
 Promise.allSettled([
   new Promise((resolve) => setTimeout(() => resolve("a"), 200)),
   new Promise((_, reject) => setTimeout(() => reject(new Error("b")), 100)),
@@ -63,14 +63,14 @@ Promise.allSettled([
 );
 
 // --- Promise.race ---
-console.log("\n--- Promise.race ---");
+// --- Promise.race ---
 Promise.race([
   new Promise((_, reject) => setTimeout(() => reject(new Error("slow")), 200)),
   new Promise((resolve) => setTimeout(() => resolve("fast"), 50)),
 ]).then((val) => console.log("Race winner:", val));
 
 // --- Promise.any ---
-console.log("\n--- Promise.any ---");
+// --- Promise.any ---
 Promise.any([
   new Promise((_, reject) => reject(new Error("a"))),
   new Promise((resolve) => setTimeout(() => resolve("b"), 100)),
@@ -83,7 +83,7 @@ Promise.any([
 ]).catch((err) => console.log("Any all rejected:", err instanceof AggregateError, err.errors.length));
 
 // --- Common Mistakes ---
-console.log("\n--- Common mistakes (commented) ---");
+// --- Common mistakes (commented) ---
 // ❌ Floating promise — not awaited, errors lost
 // fetchUser(id); // promise fires but nothing handles it
 
@@ -103,7 +103,7 @@ console.log("\n--- Common mistakes (commented) ---");
 //   .then(data => doSomething(data))
 //   .catch(err => console.error(err));
 
-console.log("(All examples above are commented — patterns shown, not executed)");
+// (All examples above are commented — patterns shown, not executed)
 
 // --- Expected Output ---
 // --- Creating a Promise ---

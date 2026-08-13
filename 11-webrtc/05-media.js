@@ -74,8 +74,8 @@ async function addMediaToPeerConnection(pc, stream) {
 // SFU: one pc to the SFU server, which forwards/selects streams — what Meet/Zoom do at scale.
 // Both use the exact same RTCPeerConnection + addTrack API.
 
-console.log("Copy into peer.html or DevTools. Key lines:");
-console.log("  getUserMedia({ audio, video })  -> MediaStream (tracks)");
-console.log("  getDisplayMedia()               -> screen share");
-console.log("  track.enabled = false           -> mute without stopping capture");
-console.log("  sender.replaceTrack(newTrack)   -> switch camera, no renegotiation");
+// Copy into peer.html or DevTools. Key lines:
+// getUserMedia({ audio, video })  -> MediaStream (tracks)
+// getDisplayMedia()               -> screen share
+// track.enabled = false           -> mute without stopping capture
+// sender.replaceTrack(newTrack)   -> switch camera, no renegotiation

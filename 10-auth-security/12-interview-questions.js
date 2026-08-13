@@ -33,7 +33,7 @@ for (const [q, a] of qa) {
   console.log("   →", a);
 }
 
-console.log("\n--- Bonus: draw these on the whiteboard ---");
-console.log("1. JWT lifecycle: login -> access (mem) + refresh (cookie) -> 401 -> refresh -> replay");
-console.log("2. OAuth code+PKCE: app -> authorize -> code -> token(t+verifier) -> API calls");
-console.log("3. Handshake: GET /?socket_token -> 101 + Sec-WebSocket-Accept -> frames");
+// --- Bonus: draw these on the whiteboard ---
+// 1. JWT lifecycle: login -> access (mem) + refresh (cookie) -> 401 -> refresh -> replay
+// 2. OAuth code+PKCE: app -> authorize -> code -> token(t+verifier) -> API calls
+// 3. Handshake: GET /?socket_token -> 101 + Sec-WebSocket-Accept -> frames

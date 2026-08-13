@@ -5,7 +5,7 @@
  * Run: node 05-async-await.js
  */
 
-console.log("--- async always returns a promise ---");
+// --- async always returns a promise ---
 async function greet() {
   return "hello";
 }
@@ -14,7 +14,7 @@ greet().then((val) => console.log("greet:", val)); // "hello"
 console.log("typeof greet():", typeof greet()); // "object" (it's a Promise)
 
 // --- await unwraps the promise ---
-console.log("\n--- await unwraps ---");
+// --- await unwraps ---
 async function main() {
   const val = await Promise.resolve(42);
   console.log("awaited value:", val); // 42
@@ -22,7 +22,7 @@ async function main() {
 main();
 
 // --- Error handling with try/catch ---
-console.log("\n--- Error handling ---");
+// --- Error handling ---
 async function risky() {
   try {
     const data = await Promise.reject(new Error("oops"));
@@ -33,7 +33,7 @@ async function risky() {
 risky();
 
 // --- Parallel vs Sequential ---
-console.log("\n--- Sequential vs Parallel ---");
+// --- Sequential vs Parallel ---
 function wait(ms, label) {
   return new Promise((resolve) => {
     console.log(`  ${label}: starting`);
@@ -45,14 +45,14 @@ function wait(ms, label) {
 }
 
 async function sequential() {
-  console.log("Sequential (4s total):");
+  // Sequential (4s total):
   const a = await wait(2000, "A");
   const b = await wait(2000, "B");
   console.log("  Result:", a, b);
 }
 
 async function parallel() {
-  console.log("Parallel (2s total):");
+  // Parallel (2s total):
   const [a, b] = await Promise.all([wait(2000, "A"), wait(2000, "B")]);
   console.log("  Result:", a, b);
 }
@@ -62,10 +62,10 @@ async function parallel() {
 // parallel();
 
 // Commented to avoid long wait — uncomment to test
-console.log("(Uncomment sequential() and parallel() to test — each takes ~2s)");
+// (Uncomment sequential() and parallel() to test — each takes ~2s)
 
 // --- Promise.all with async/await ---
-console.log("\n--- Parallel dashboard load ---");
+// --- Parallel dashboard load ---
 async function loadDashboard() {
   const [users, posts, comments] = await Promise.all([
     Promise.resolve("users data"),

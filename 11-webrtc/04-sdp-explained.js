@@ -48,7 +48,7 @@ const realSdp = [
   "a=max-message-size:262144", // max DataChannel message size (256KB)
 ].join("\r\n") + "\r\n";
 
-console.log("=== A real SDP offer, annotated ===");
+// === A real SDP offer, annotated ===
 const annotations = {
   "v=": "version",
   "o=": "origin (session id + address; cosmetic)",
@@ -73,29 +73,36 @@ const annotations = {
   "a=max-message-size": "largest DataChannel message the peer accepts",
 };
 
-for (const line of realSdp.trimEnd().split("\r\n")) {
-  const key = Object.keys(annotations).find((k) => line.startsWith(k));
-  console.log(`  ${line.padEnd(52)} ${key ? "→ " + annotations[key] : ""}`);
-}
+// SDP annotation reference (see webrtc.md 11.4 for full prose):
+//   v=                           version
+//   o=                           origin (session id + address; cosmetic)
+//   s=                           session name
+//   t=                           time the session is active
+//   a=group:BUNDLE               all m-lines bundle onto ONE transport
+//   m=audio / m=video / m=application  media lines
+//   c=IN IP4                     placeholder — real address via ICE candidates
+//   a=rtpmap                     codec mapping (payload number -> codec/clock/channels)
+//   a=fmtp                       codec-specific params (FEC, max sizes)
+//   a=sendrecv / a=sendonly / a=recvonly / a=inactive  direction
+//   a=mid                        m-line identifier (BUNDLE groups by this)
+//   a=ice-ufrag / a=ice-pwd       ICE credentials (fresh on every ICE restart)
+//   a=fingerprint                 DTLS certificate fingerprint — peers mutually authenticate
+//   a=setup:actpass               DTLS role negotiation
+//   a=rtcp-fb                     RTCP feedback: nack / pli / transport-cc
+//   a=ssrc                        synchronization source — identifies the media stream
+//   a=sctp-port                   SCTP port used by DataChannels
+//   a=max-message-size            largest DataChannel message the peer accepts
 
-console.log("\n=== ICE candidates (the part that gets 'trickled') ===");
-const candidates = [
-  { type: "host", addr: "192.168.1.10:55555", priority: 1 },
-  { type: "srflx", addr: "203.0.113.7:44444", priority: 2, via: "STUN", note: "public IP discovered with STUN — works through most NATs" },
-  { type: "relay", addr: "turn.example.com:3478:33333", priority: 3, via: "TURN", note: "relayed through TURN server — last resort for symmetric NAT/firewalls" },
-];
-for (const c of candidates) {
-  console.log(
-    `  ${c.type.padEnd(6)} ${c.addr.padEnd(34)} priority ${c.priority}  ` +
-      (c.via ? `(${c.via}) ${c.note}` : "(local network)")
-  );
-}
+// ICE candidates reference (see webrtc.md 11.4):
+//   host    192.168.1.10:55555  priority 1  (local network)
+//   srflx   203.0.113.7:44444   priority 2  (STUN — public IP discovered)
+//   relay   turn.example.com:3478:33333  priority 3  (TURN — last resort for symmetric NAT)
 
-console.log("\n=== How a connection is chosen (simplified) ===");
-console.log("For each candidate pair (local x remote), both sides run a STUN-style");
-console.log("connectivity check over UDP. First pair that passes wins; pairs are");
-console.log("ordered by priority (host > srflx > relay) and by candidate quality.");
-console.log("\nKey interview facts:");
+// === How a connection is chosen (simplified) ===
+// For each candidate pair (local x remote), both sides run a STUN-style
+// connectivity check over UDP. First pair that passes wins; pairs are
+// ordered by priority (host > srflx > relay) and by candidate quality.
+// Key interview facts:
 // - SDP is NOT secret: it is negotiated via signaling and can be logged.
 // - Media IS secret: encrypted by DTLS-SRTP with keys from the DTLS handshake.
 // - The candidate-pair in getStats() tells you host/srflx/relay in use.

@@ -1,11 +1,12 @@
 /**
  * Module 09 — 9.11 DOM Patterns & Projects
  * Draggable API, FormData API, Calendar, LeaderBoard
+ * Cross-reference: 13-interview-questions.js (text bank)
  *
  * Run in browser DevTools console.
  */
 
-console.log("--- Draggable API ---");
+// --- Draggable API ---
 
 /*
 // Make element draggable
@@ -32,7 +33,7 @@ target.addEventListener("drop", (e) => {
 });
 */
 
-console.log("--- FormData API ---");
+// --- FormData API ---
 
 /*
 // Browser: new FormData(formElement)
@@ -57,13 +58,13 @@ for (const [key, value] of formData.entries()) {
 // (Content-Type is set automatically by browser)
 */
 
-console.log("--- Calendar Project (Guided/) ---");
-console.log("Logic: generate 42 days around current month");
-console.log("Key: findDay(1) → pad days before; findDay(total) → pad after");
-console.log("new Date(year, month, 1).getDay() → first weekday");
-console.log("new Date(year, month + 1, 0).getDate() → total days");
+// --- Calendar Project (Guided/) ---
+// Logic: generate 42 days around current month
+// Key: findDay(1) → pad days before; findDay(total) → pad after
+// new Date(year, month, 1).getDay() → first weekday
+// new Date(year, month + 1, 0).getDate() → total days
 
-console.log("\n--- LeaderBoard Project ---");
-console.log("Logic: sort players by score desc, assign ranks");
-console.log("Ties: same rank but skip next (1, 2, 2, 4)");
-console.log("Array sort + reduce to assign ranks");
+// --- LeaderBoard Project ---
+// Logic: sort players by score desc, assign ranks
+// Ties: same rank but skip next (1, 2, 2, 4)
+// Array sort + reduce to assign ranks

@@ -6,14 +6,14 @@
  */
 
 // --- Safe Integers ---
-console.log("--- Safe Integers ---");
+// --- Safe Integers ---
 console.log(Number.MAX_SAFE_INTEGER); // 9007199254740991
 console.log(Number.MIN_SAFE_INTEGER); // -9007199254740991
 console.log(Number.isSafeInteger(9007199254740991)); // true
 console.log(Number.isSafeInteger(9007199254740992)); // false (unsafe!)
 
 // --- BigInt ---
-console.log("\n--- BigInt ---");
+// --- BigInt ---
 const big = 9007199254740991n;
 console.log(typeof big); // "bigint"
 console.log(big + 1n === big + 2n); // false — BigInt is precise!
@@ -21,14 +21,14 @@ console.log(BigInt(9007199254740991)); // 9007199254740991n
 // big + 1  // TypeError: can't mix BigInt and Number
 
 // --- Math methods ---
-console.log("\n--- Math.floor / ceil / round / trunc ---");
+// --- Math.floor / ceil / round / trunc ---
 console.log(Math.floor(3.7)); // 3 (round down)
 console.log(Math.ceil(3.2)); // 4 (round up)
 console.log(Math.round(3.5)); // 4 (nearest, .5 rounds up)
 console.log(Math.trunc(3.7)); // 3 (remove decimal)
 console.log(Math.trunc(-3.7)); // -3 (toward zero)
 
-console.log("\n--- Math.random and range ---");
+// --- Math.random and range ---
 console.log(Math.random()); // 0 to 1 (exclusive)
 // Random integer between min and max (inclusive)
 function randomInt(min, max) {
@@ -36,12 +36,12 @@ function randomInt(min, max) {
 }
 console.log(randomInt(1, 10)); // 1-10
 
-console.log("\n--- Math.min / max / hypot ---");
+// --- Math.min / max / hypot ---
 console.log(Math.max(1, 5, 3)); // 5
 console.log(Math.min(1, 5, 3)); // 1
 console.log(Math.hypot(3, 4)); // 5 (Pythagorean theorem)
 
-console.log("\n--- Other Math methods ---");
+// --- Other Math methods ---
 console.log(Math.abs(-5)); // 5
 console.log(Math.pow(2, 10)); // 1024
 console.log(Math.sqrt(16)); // 4

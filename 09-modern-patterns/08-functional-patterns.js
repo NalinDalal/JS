@@ -5,7 +5,7 @@
  * Run: node 08-functional-patterns.js
  */
 
-console.log("--- Currying (n-ary -> unary chain) ---");
+// --- Currying (n-ary -> unary chain) ---
 const add = (a) => (b) => a + b;
 const add5 = add(5);
 console.log("add5(3):", add5(3)); // 8
@@ -17,7 +17,7 @@ const sum = (a, b, c) => a + b + c;
 const curriedSum = curry3(sum);
 console.log("curriedSum(1)(2)(3):", curriedSum(1)(2)(3)); // 6
 
-console.log("\n--- Partial application (bind vs custom) ---");
+// --- Partial application (bind vs custom) ---
 function multiply(a, b) { return a * b; }
 const double = multiply.bind(null, 2);
 console.log("double(5):", double(5)); // 10
@@ -29,7 +29,7 @@ function partial(fn, ...fixedArgs) {
 const triple = partial(multiply, 3);
 console.log("triple(4):", triple(4)); // 12
 
-console.log("\n--- Memoization ---");
+// --- Memoization ---
 function memoize(fn) {
   const cache = new Map();
   return (...args) => {
@@ -55,7 +55,7 @@ const fib = memoize((n) => {
 
 console.log("fib(40):", fib(40)); // 102334155 (fast with memoization)
 
-console.log("\n--- Pipe (left to right) ---");
+// --- Pipe (left to right) ---
 const pipe = (...fns) => (x) => fns.reduce((acc, fn) => fn(acc), x);
 
 const doubleNum = (x) => x * 2;
@@ -65,7 +65,7 @@ const toStringNum = (x) => `${x}`;
 const process = pipe(doubleNum, increment, toStringNum);
 console.log("pipe(double, inc, toString)(5):", process(5)); // "11"
 
-console.log("\n--- Compose (right to left) ---");
+// --- Compose (right to left) ---
 const compose = (...fns) => (x) => fns.reduceRight((acc, fn) => fn(acc), x);
 
 const process2 = compose(toStringNum, increment, doubleNum);

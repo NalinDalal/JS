@@ -5,7 +5,7 @@
  * Run: node 09-debounce-throttle.js
  */
 
-console.log("--- Debounce (delay until pause) ---");
+// --- Debounce (delay until pause) ---
 // Debounce: callback fires only after `delay` ms of inactivity
 function debounce(fn, delay) {
   let timerId = null;
@@ -34,11 +34,11 @@ function debounceImmediate(fn, delay) {
 }
 
 console.log("Debounce strategies:");
-console.log("  Leading edge  — fires immediately, then waits");
-console.log("  Trailing edge — waits for pause, then fires");
-console.log("  Leading+trailing — fires immediately, and after pause");
+// Leading edge  — fires immediately, then waits
+// Trailing edge — waits for pause, then fires
+// Leading+trailing — fires immediately, and after pause
 
-console.log("\n--- Throttle (max 1 call per interval) ---");
+// --- Throttle (max 1 call per interval) ---
 function throttle(fn, interval) {
   let lastTime = 0;
   let timerId = null;
@@ -66,7 +66,7 @@ function throttle(fn, interval) {
 
 // Usage: window.addEventListener("scroll", throttle(handleScroll, 100));
 
-console.log("\n--- Difference ---");
-console.log("Debounce:  Fires after user stops typing (search, autocomplete)");
-console.log("Throttle:  Fires at most once per interval (scroll, resize)");
-console.log("rAF:       requestAnimationFrame — fires before each paint (animations)");
+// --- Difference ---
+// Debounce:  Fires after user stops typing (search, autocomplete)
+// Throttle:  Fires at most once per interval (scroll, resize)
+// rAF:       requestAnimationFrame — fires before each paint (animations)

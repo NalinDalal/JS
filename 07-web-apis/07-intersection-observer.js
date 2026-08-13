@@ -5,7 +5,7 @@
  * Paste in browser DevTools console.
  */
 
-console.log("--- IntersectionObserver ---");
+// --- IntersectionObserver ---
 
 /*
 const observer = new IntersectionObserver((entries) => {
@@ -26,7 +26,7 @@ const observer = new IntersectionObserver((entries) => {
 document.querySelectorAll("[data-src]").forEach(img => observer.observe(img));
 */
 
-console.log("--- Infinite scroll pattern ---");
+// --- Infinite scroll pattern ---
 /*
 const sentinel = document.getElementById("sentinel");
 const infiniteObserver = new IntersectionObserver(([entry]) => {
@@ -37,16 +37,16 @@ const infiniteObserver = new IntersectionObserver(([entry]) => {
 infiniteObserver.observe(sentinel);
 */
 
-console.log("\n--- Visible timer / analytics ---");
+// --- Visible timer / analytics ---
 /*
 const adObserver = new IntersectionObserver(([entry]) => {
   if (entry.isIntersecting) {
-    console.log("Ad visible — start timer");
+    // Ad visible — start timer
   } else {
-    console.log("Ad hidden — stop timer");
+    // Ad hidden — stop timer
   }
 }, { threshold: [0, 1] }); // both 0% and 100% visibility
 adObserver.observe(document.getElementById("ad-banner"));
 */
 
-console.log("\nBrowser support: IntersectionObserver is supported in all modern browsers (IE11 polyfill available).");
+// Browser support: IntersectionObserver is supported in all modern browsers (IE11 polyfill available).

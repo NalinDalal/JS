@@ -106,7 +106,7 @@ class SimPeer {
   }
 }
 
-console.log("=== Call setup: Alice calls Bob ===");
+// === Call setup: Alice calls Bob ===
 const alice = new SimPeer("alice");
 const bob = new SimPeer("bob");
 
@@ -125,14 +125,14 @@ bob.connected();
 alice.connected();
 
 // 3) ICE trickling — both sides exchange candidates as gathered
-console.log("\n=== ICE trickle ===");
+// === ICE trickle ===
 for (const c of alice.gatherCandidates()) bob.addRemoteCandidate(c, "alice");
 for (const c of bob.gatherCandidates()) alice.addRemoteCandidate(c, "bob");
 console.log(`  bob received ${bob.candidates.length} candidates from alice`);
 console.log(`  alice received ${alice.candidates.length} candidates from bob`);
 
 // 4) Network hiccup -> disconnected -> ICE restart (new ufrag -> renegotiate)
-console.log("\n=== Network blip -> ICE restart ===");
+// === Network blip -> ICE restart ===
 alice.networkBlip();
 const restartOffer = alice.iceRestart(); // perfect-negotiation: impolite peer restarts
 bob.setRemote(restartOffer);
@@ -142,7 +142,7 @@ alice.connected();
 bob.connected();
 
 // 5) Hard failure when NAT traversal is impossible
-console.log("\n=== Hard failure ===");
+// === Hard failure ===
 const carol = new SimPeer("carol");
 const carolOffer = carol.createOffer();
 bob.setRemote(carolOffer);
@@ -151,8 +151,8 @@ carol.iceState = "failed";
 carol.connectionState = "failed";
 carol.log("(no candidates, no TURN — can't connect)");
 
-console.log("\n=== State transitions (interview version) ===");
+// === State transitions (interview version) ===
 // signaling: stable -> have-local-offer -> have-remote-offer -> stable (each negotiation)
 // ice:       new -> checking -> connected -> completed | disconnected | failed
 // connection:new -> connecting -> connected | disconnected -> failed -> closed
-console.log("disconnected != failed — try ICE restart before giving up.");
+// disconnected != failed — try ICE restart before giving up.

@@ -219,12 +219,11 @@ server.listen(0, async () => {
     const pong = (await waitPayload(c4.sock)).toString().replace(/[^\x20-\x7e]/g, "");
     console.log("got pong echoing ping payload:", JSON.stringify(pong) === '"hi"');
   }
-
-  console.log("\nAuth options recap:");
-// 1) one-time token in query string (works everywhere, but lands in logs)
-    // 2) HttpOnly cookie in handshake (browser default, no token in URL)
-    // 3) subprotocol/Authorization header (server-to-server clients)
-    // Mid-session expiry: server closes with 4001/4401; client reconnects
-    // with a fresh token. Ping/pong keeps dead connections detected.
+  // Auth options recap:
+  // 1) one-time token in query string (works everywhere, but lands in logs)
+  // 2) HttpOnly cookie in handshake (browser default, no token in URL)
+  // 3) subprotocol/Authorization header (server-to-server clients)
+  // Mid-session expiry: server closes with 4001/4401; client reconnects
+  // with a fresh token. Ping/pong keeps dead connections detected.
   process.exit(0);
 });

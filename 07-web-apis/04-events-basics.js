@@ -5,7 +5,7 @@
  * Paste in browser DevTools console to run.
  */
 
-console.log("--- addEventListener ---");
+// --- addEventListener ---
 const btn = document.getElementById("myButton");
 if (btn) {
   btn.addEventListener("click", function handler(event) {
@@ -16,7 +16,7 @@ if (btn) {
   // Remove listener later: btn.removeEventListener("click", handler);
 }
 
-console.log("\n--- Event propagation: bubbling (default) ---");
+// --- Event propagation: bubbling (default) ---
 // Structure: div#outer > div#inner
 const outer = document.querySelector("#outer");
 const inner = document.querySelector("#inner");
@@ -30,29 +30,29 @@ if (outer && inner) {
   // Clicking inner: logs "inner" then "outer" (bubbles up)
 }
 
-console.log("\n--- Capturing phase ---");
+// --- Capturing phase ---
 if (outer) {
   outer.addEventListener("click", () => console.log("outer capture"), true);
   // third argument true means capture phase
   // Clicking inner: "outer capture" → "inner" → "outer"
 }
 
-console.log("\n--- preventDefault ---");
+// --- preventDefault ---
 const link = document.querySelector("a");
 if (link) {
   link.addEventListener("click", (e) => {
     e.preventDefault(); // stops default navigation
-    console.log("Link clicked, navigation prevented");
+    // Link clicked, navigation prevented
     // e.defaultPrevented === true
   });
 }
 
-console.log("\n--- Once option ---");
+// --- Once option ---
 if (btn) {
   btn.addEventListener("click", () => console.log("Runs once"), { once: true });
 }
 
-console.log("\n--- Passive option ---");
+// --- Passive option ---
 if (btn) {
   btn.addEventListener("wheel", (e) => {
     // e.preventDefault(); // ignored because passive: true

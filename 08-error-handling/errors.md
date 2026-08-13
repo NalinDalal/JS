@@ -111,7 +111,7 @@ try {
 try {
   JSON.parse("invalid json");
 } catch {
-  console.log("Caught without naming the error");
+  // Caught without naming the error
 }
 
 // 3. Finally ALWAYS runs
@@ -119,7 +119,7 @@ function testFinally() {
   try {
     return "from try";
   } finally {
-    console.log("finally runs before return!");
+    // finally runs before return!
   }
 }
 testFinally(); // logs "finally runs before return!" then returns "from try"
@@ -384,8 +384,8 @@ Debugging is finding and fixing bugs. JavaScript provides multiple built-in tool
 ```js
 // 1. Console methods
 console.log("basic log");
-console.warn("warning — yellow triangle");
-console.error("error — red text");
+// warning — yellow triangle
+// error — red text
 
 console.table([
   { name: "Alice", age: 30 },

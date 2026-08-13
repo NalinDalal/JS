@@ -100,6 +100,13 @@ console.log(firstName); // "Jane"
 console.log(lastName);  // "Doe"
 ```
 
+#### Gotchas / Edge Cases
+
+- Default values apply when the source property is `undefined`, NOT when it's `null` (`const { x = 10 } = { x: null }` → `x` is `null`).
+- Renaming syntax `{ foo: bar }` means "take `foo` from the object and store it in variable `bar`"; the original name `foo` is not defined afterward.
+- Nested destructuring of a missing intermediate object returns `undefined` for the leaf — no `TypeError` is thrown.
+- `let`/`const` in destructuring patterns are block-scoped; `var` leaks to function scope.
+
 ---
 
 ## 9.2 Spread & Rest Operators
@@ -186,6 +193,13 @@ shallow.items.push(3);
 console.log(nested.items); // [1, 2, 3] — same reference!
 ```
 
+#### Gotchas / Edge Cases
+
+- Spread on objects is **shallow** — nested objects/arrays keep the same reference. Mutating the copy mutates the original. Use `structuredClone()` for deep copies.
+- Spread on a string iterates characters (`[...'hello']` → `['h','e','l','l','o']`), not the string itself.
+- Rest (`...rest`) must be the **last** element in a destructuring pattern; `const [first, ...rest, last] = arr` is a syntax error.
+- Object spread overwrites left-to-right — later sources overwrite earlier keys.
+
 ---
 
 ## 9.3 Optional Chaining (?.)
@@ -262,6 +276,13 @@ console.log(falsy?.toString());         // "0" (?. is null/undefined only)
 // Optional chaining with assignment (can't use ?. on left side)
 // obj?.prop = 1; // SyntaxError
 ```
+
+#### Gotchas / Edge Cases
+
+- `?.` short-circuits **only** on `null` and `undefined`. Falsy values like `0`, `""`, and `false` do NOT short-circuit — `0?.x` returns `undefined`, but `0 && 0.x` returns `0`.
+- Cannot use `?.` on the **left-hand side** of an assignment (`obj?.prop = 1` is a SyntaxError).
+- `?.()` returns `undefined` when the method doesn't exist, which is different from `&&` chaining that would return the falsy left operand.
+- Optional chaining stops at the first `null`/`undefined` — it does not throw, so missing data silently becomes `undefined`.
 
 ---
 
@@ -355,6 +376,13 @@ val = 'existing';
 val ??= 'new';
 console.log(val); // "existing"
 ```
+
+#### Gotchas / Edge Cases
+
+- `??` triggers **only** for `null` and `undefined`. `0`, `""`, `false`, and `NaN` are NOT nullish — `0 ?? 10` returns `0`, not `10`.
+- Cannot mix `??` with `&&` or `||` without parentheses: `a || b ?? c` is a SyntaxError. Use `(a || b) ?? c` or `a || (b ?? c)`.
+- `??=` assigns only when the current value is `null` or `undefined`. `let x = 0; x ??= 10` leaves `x` as `0`.
+- `null` and `undefined` are the only two nullish values in JavaScript.
 
 ---
 
@@ -477,6 +505,13 @@ function raw(strings) {
 }
 console.log(raw`Hello\nWorld`); // "Hello\nWorld" (not "Hello\nWorld" with newline)
 ```
+
+#### Gotchas / Edge Cases
+
+- Template literals preserve **all** whitespace exactly as typed — leading/trailing newlines and indentation are kept. Use `.trim()` if you don't want them.
+- Tagged templates receive a `raw` array on the second argument that contains unprocessed escape sequences (`\n` stays as two characters `\` + `n`).
+- Expressions inside `${}` are evaluated **at render time**, not at definition time — if the variable changes later, you need to re-render the template.
+- To include a literal `${}` in a template, escape the `$` with `\\${}` or use a regular string.
 
 ---
 
@@ -618,6 +653,13 @@ console.log(tags); // ["<b>", "</b>", "<i>", "</i>"]
 'a1b2c3'.split(/\d/); // ["a", "b", "c", ""]
 ```
 
+#### Gotchas / Edge Cases
+
+- Greedy quantifiers (`*`, `+`) match as much as possible. Use `?` after a quantifier for lazy matching (`.*?` matches the minimum).
+- `.` matches any character **except** newline by default. Add the `s` (dotAll) flag to make it match newlines too.
+- `String.prototype.match()` with the `g` flag returns only full matches — capture groups are discarded. Use `matchAll()` when you need groups.
+- `^` and `$` match line boundaries only with the `m` (multiline) flag; without it they match the start/end of the entire string.
+
 ---
 
 ## 9.7 Date & Time
@@ -736,6 +778,13 @@ const start = Date.now();
 const end = Date.now();
 console.log(`Elapsed: ${end - start}ms`);
 ```
+
+#### Gotchas / Edge Cases
+
+- `getMonth()` is **0-indexed** (0 = January, 11 = December). `getDay()` returns 0–6 where 0 = Sunday.
+- `new Date()` without arguments returns the current time, but `new Date('invalid')` returns an **Invalid Date** — always validate.
+- `Date` objects are **mutable**: `setHours()`, `setMonth()`, etc. modify the instance in place and return the new timestamp.
+- Comparing dates with `==` or `===` compares object references, not values. Use `d1.getTime() === d2.getTime()` or `d1 - d2`.
 
 ---
 
@@ -926,6 +975,13 @@ account.deposit(50);     // 150
 account.withdraw(30);    // 120
 account.getBalance();    // 120
 ```
+
+#### Gotchas / Edge Cases
+
+- Closures capture **variables by reference**, not by value — if the outer variable changes later, the closure sees the new value.
+- `this` context is lost when passing object methods as callbacks. Bind with `.bind(this)`, arrow methods, or call via an intermediate reference.
+- Currying fixes one argument at a time and returns a new function at each step; partial application pre-fills some arguments and returns a single new function.
+- Memoization cache keys from `JSON.stringify(args)` break for `undefined`, functions, circular refs, or property-order-sensitive objects.
 
 ---
 
@@ -1250,6 +1306,13 @@ Trigger:  _ _ _ _ _ _ _ _ _ _ (rapid fire)
 Debounce: _________________ ^ (fires once, after pause)
 Throttle: ^   ^   ^   ^   ^  (fires every N ms)
 ```
+
+#### Gotchas / Edge Cases
+
+- Debounce fires **after** the wait period (trailing edge by default). The first trigger does NOT execute until the user stops.
+- Throttle fires **at most once** per interval — the first trigger executes immediately (leading edge), then ignores subsequent triggers until the window resets.
+- If you need both leading and trailing execution (e.g., submit a form on type + wait for final input), combine debounce with a `leading: true` flag or use a hybrid approach.
+- Both must preserve `this` and arguments when used as event handlers — use arrow functions or `.bind(this)` if defined as methods.
 
 ---
 

@@ -673,7 +673,7 @@ The `once` option automatically removes the listener after it fires **one time**
 
 ```js
 button.addEventListener('click', function(e) {
-  console.log('This fires only once');
+  // This fires only once
   // No need to manually removeEventListener
 }, { once: true });
 ```
@@ -952,9 +952,9 @@ infiniteObserver.observe(sentinel);
 ```js
 const adObserver = new IntersectionObserver(([entry]) => {
   if (entry.isIntersecting) {
-    console.log('Ad visible — start timer / play animation');
+    // Ad visible — start timer / play animation
   } else {
-    console.log('Ad hidden — stop timer');
+    // Ad hidden — stop timer
   }
 }, { threshold: [0, 1] }); // fire at both 0% and 100% visibility
 adObserver.observe(document.getElementById('ad-banner'));
@@ -1192,7 +1192,7 @@ if ('geolocation' in navigator) {
     }
   );
 } else {
-  console.log('Geolocation not supported');
+  // Geolocation not supported
 }
 ```
 

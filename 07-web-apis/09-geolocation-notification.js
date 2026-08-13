@@ -5,7 +5,7 @@
  * Paste in browser DevTools console.
  */
 
-console.log("--- Geolocation API ---");
+// --- Geolocation API ---
 
 /*
 if ("geolocation" in navigator) {
@@ -28,7 +28,7 @@ if ("geolocation" in navigator) {
     }
   );
 } else {
-  console.log("Geolocation not supported");
+  // Geolocation not supported
 }
 */
 
@@ -41,7 +41,7 @@ const watchId = navigator.geolocation.watchPosition(
 // Later: navigator.geolocation.clearWatch(watchId);
 */
 
-console.log("\n--- Notification API ---");
+// --- Notification API ---
 
 /*
 if ("Notification" in window) {
@@ -69,4 +69,4 @@ if ("Notification" in window) {
 }
 */
 
-console.log("\nBoth APIs require HTTPS (except localhost) and user permission.");
+// Both APIs require HTTPS (except localhost) and user permission.

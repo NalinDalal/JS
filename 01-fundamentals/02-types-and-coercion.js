@@ -9,7 +9,7 @@
 // 1.2 TYPES
 // ============================================================
 
-console.log("--- typeof for all types ---");
+// --- typeof for all types ---
 console.log(typeof undefined); // "undefined"
 console.log(typeof null); // "object" (legacy bug from JS 1.0)
 console.log(typeof true); // "boolean"
@@ -18,12 +18,12 @@ console.log(typeof 42n); // "bigint"
 console.log(typeof "hello"); // "string"
 console.log(typeof Symbol()); // "symbol"
 
-console.log("\n--- typeof for objects ---");
+// --- typeof for objects ---
 console.log(typeof {}); // "object"
 console.log(typeof []); // "object" (use Array.isArray instead)
 console.log(typeof function () {}); // "function" (special case)
 
-console.log("\n--- Auto-wrapping (primitives access methods temporarily) ---");
+// --- Auto-wrapping (primitives access methods temporarily) ---
 console.log("hello".length); // 5 — String wrapper created temporarily
 console.log((42).toString()); // "42" — Number wrapper
 
@@ -31,30 +31,30 @@ console.log((42).toString()); // "42" — Number wrapper
 // 1.3 TYPE COERCION
 // ============================================================
 
-console.log("\n--- Implicit coercion ---");
+// --- Implicit coercion ---
 console.log("5" + 3); // "53" (string concat — + with string wins)
 console.log("5" - 3); // 2 (number — - always numeric)
 console.log(true + 1); // 2 (true → 1)
 console.log(null + 1); // 1 (null → 0)
 console.log(undefined + 1); // NaN (undefined → NaN)
 
-console.log("\n--- == loose equality (avoid!) ---");
+// --- == loose equality (avoid!) ---
 console.log(0 == false); // true
 console.log("" == false); // true
 console.log("5" == 5); // true
 console.log(null == undefined); // true (only case!)
 
-console.log("\n--- === strict equality (prefer) ---");
+// --- === strict equality (prefer) ---
 console.log(0 === false); // false
 console.log("5" === 5); // false
 console.log(null === undefined); // false
 
-console.log("\n--- Object.is (same-value equality) ---");
+// --- Object.is (same-value equality) ---
 console.log(Object.is(NaN, NaN)); // true (unlike ===)
 console.log(Object.is(+0, -0)); // false (unlike ===)
 console.log(Object.is(0, false)); // false
 
-console.log("\n--- Explicit coercion (clear intent) ---");
+// --- Explicit coercion (clear intent) ---
 console.log(Number("42")); // 42
 console.log(+"42"); // 42 (unary +)
 console.log(String(42)); // "42"
@@ -66,19 +66,19 @@ console.log(!!"hello"); // true
 // 1.4 SPECIAL VALUES
 // ============================================================
 
-console.log("\n--- NaN ---");
+// --- NaN ---
 console.log(NaN === NaN); // false (only value !== itself)
 console.log(NaN !== NaN); // true
 console.log(Number.isNaN(NaN)); // true
 console.log(Number.isNaN("foo")); // false
 // console.log(isNaN("foo")); // true — global isNaN coerces! Avoid.
 
-console.log("\n--- Infinity ---");
+// --- Infinity ---
 console.log(1 / 0); // Infinity
 console.log(-1 / 0); // -Infinity
 console.log(Infinity - Infinity); // NaN
 
-console.log("\n--- +0 vs -0 ---");
+// --- +0 vs -0 ---
 console.log(+0 === -0); // true
 console.log(Object.is(+0, -0)); // false
 console.log(1 / +0); // Infinity

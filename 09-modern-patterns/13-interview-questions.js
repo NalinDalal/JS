@@ -28,7 +28,7 @@ for (const [q, a] of qa) {
   console.log("   →", a);
 }
 
-console.log("\n--- Whiteboard drills ---");
-console.log("1. Write debounce (trailing) in 8 lines with clearTimeout.");
-console.log("2. Parsing query strings: URLSearchParams vs manual split.");
-console.log("3. ?. ?? || precedence — why (a ?? b) || c needs parens.");
+// --- Whiteboard drills ---
+// 1. Write debounce (trailing) in 8 lines with clearTimeout.
+// 2. Parsing query strings: URLSearchParams vs manual split.
+// 3. ?. ?? || precedence — why (a ?? b) || c needs parens.

@@ -6,7 +6,7 @@
  */
 
 // --- Basic prototype chain ---
-console.log("--- Basic prototype chain ---");
+// --- Basic prototype chain ---
 const animal = { eats: true };
 const rabbit = Object.create(animal);
 rabbit.jumps = true;
@@ -16,7 +16,7 @@ console.log(rabbit.jumps); // true (own property)
 console.log(Object.getPrototypeOf(rabbit) === animal); // true
 
 // --- Property lookup through chain ---
-console.log("\n--- Property lookup ---");
+// --- Property lookup ---
 const grandparent = { family: "Smith" };
 const parent = Object.create(grandparent);
 parent.job = "Engineer";
@@ -29,7 +29,7 @@ console.log(child.family); // "Smith" (grandparent)
 console.log(child.unknown); // undefined (not found)
 
 // --- Object.create with methods ---
-console.log("\n--- Object.create with methods ---");
+// --- Object.create with methods ---
 const base = {
   greet() {
     return `Hi, I'm ${this.name}`;
@@ -41,12 +41,12 @@ user.name = "Charlie";
 console.log(user.greet()); // "Hi, I'm Charlie"
 
 // --- Truly empty object (no prototype) ---
-console.log("\n--- Object.create(null) ---");
+// --- Object.create(null) ---
 const bare = Object.create(null);
 console.log(bare.toString); // undefined (no inherited methods)
 
 // --- Prototype chain with constructor ---
-console.log("\n--- Constructor prototype chain ---");
+// --- Constructor prototype chain ---
 function Person(name) {
   this.name = name;
 }

@@ -94,7 +94,7 @@ var b = 5;
 // function hoisting — entire function is hoisted
 sayHi(); // "Hi!" — works before declaration
 function sayHi() {
-  console.log("Hi!");
+  // Hi!
 }
 
 // let/const — TDZ
@@ -162,13 +162,13 @@ console.log(counter.getCount()); // 2
 
 ```js
 // Closure in a loop — classic pitfall
-console.log("=== var (no block scope) ===");
+// === var (no block scope) ===
 for (var i = 0; i < 3; i++) {
   setTimeout(() => console.log(i), 100);
 }
 // Output: 3, 3, 3 — all closures share the same `i`
 
-console.log("=== let (block scope) ===");
+// === let (block scope) ===
 for (let j = 0; j < 3; j++) {
   setTimeout(() => console.log(j), 100);
 }
@@ -245,7 +245,7 @@ An **IIFE** is a function that is defined and immediately executed. It creates a
 try {
   console.log(secret); // ReferenceError — not global
 } catch (e) {
-  console.log("secret is not global");
+  // secret is not global
 }
 
 // IIFE for async loop fix (pre-let era)

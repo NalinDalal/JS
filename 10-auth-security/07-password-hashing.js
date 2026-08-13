@@ -54,5 +54,5 @@ async function verifyPassword(password, stored) {
 
   // Rules: never store plaintext, never write your own hash, use bcrypt/argon2/scrypt,
   // store salt+params+hash together, verify with a timing-safe compare.
-  console.log("all checks passed");
+  // all checks passed
 })();

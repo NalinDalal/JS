@@ -28,7 +28,7 @@ for (const [q, a] of qa) {
   console.log("   →", a);
 }
 
-console.log("\n--- Whiteboard drills ---");
-console.log("1. Draw the 3-phase event flow for a click on a nested li.");
-console.log("2. Write lazy-image loading with IntersectionObserver (5 lines).");
-console.log("3. Where does layout thrashing come from? Show read/write interleave.");
+// --- Whiteboard drills ---
+// 1. Draw the 3-phase event flow for a click on a nested li.
+// 2. Write lazy-image loading with IntersectionObserver (5 lines).
+// 3. Where does layout thrashing come from? Show read/write interleave.

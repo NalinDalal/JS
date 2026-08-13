@@ -5,16 +5,16 @@
  * Paste in browser DevTools console.
  */
 
-console.log("--- Event delegation ---");
+// --- Event delegation ---
 // Instead of attaching one listener per button, attach to parent
 document.getElementById("button-group")?.addEventListener("click", (e) => {
   const btn = e.target.closest("button");
   if (!btn) return; // ignore clicks on non-button children
   console.log("Button clicked:", btn.textContent);
 });
-console.log("Delegation: one listener for all buttons in #button-group");
+// Delegation: one listener for all buttons in #button-group
 
-console.log("\n--- CustomEvent ---");
+// --- CustomEvent ---
 const list = document.getElementById("todo-list");
 if (list) {
   list.addEventListener("item-added", (e) => {
@@ -33,7 +33,7 @@ if (list) {
   }));
 }
 
-console.log("\n--- Event cleanup (AbortController) ---");
+// --- Event cleanup (AbortController) ---
 const controller = new AbortController();
 const { signal } = controller;
 
@@ -44,17 +44,17 @@ if (el) {
 }
 
 // Later: controller.abort() removes both listeners at once
-console.log("Pass { signal } to add listeners — abort() removes them all");
+// Pass { signal } to add listeners — abort() removes them all
 // controller.abort(); // removes all listeners with this signal
 
-console.log("\n--- focus / blur (no bubbling) ---");
+// --- focus / blur (no bubbling) ---
 // Focus/blur do NOT bubble — use focusin/focusout for delegation
 document.addEventListener("focusin", (e) => {
   console.log("Input focused:", e.target.id);
 });
-console.log("Use focusin/focusout for delegation (they bubble)");
+// Use focusin/focusout for delegation (they bubble)
 
-console.log("\n--- window event cleanup ---");
+// --- window event cleanup ---
 // window.addEventListener("beforeunload", (e) => {
 //   e.preventDefault();
 //   e.returnValue = ""; // triggers "Leave site?" dialog

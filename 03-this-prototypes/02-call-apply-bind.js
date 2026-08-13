@@ -6,7 +6,7 @@
  */
 
 // --- Basic call/apply/bind ---
-console.log("--- Basic call/apply/bind ---");
+// --- Basic call/apply/bind ---
 
 function multiply(a, b) {
   return a * b;
@@ -23,7 +23,7 @@ const double = multiply.bind(null, 2);
 console.log(double(5)); // 10
 
 // --- Borrowing array methods ---
-console.log("\n--- Borrowing array methods ---");
+// --- Borrowing array methods ---
 const arrayLike = { 0: "a", 1: "b", length: 2 };
 const arr = Array.prototype.slice.call(arrayLike);
 console.log(arr); // ["a", "b"]
@@ -33,7 +33,7 @@ const arr2 = Array.from(arrayLike);
 console.log(arr2); // ["a", "b"]
 
 // --- Partial application with bind ---
-console.log("\n--- Partial application ---");
+// --- Partial application ---
 function log(level, msg) {
   console.log(`[${level}] ${msg}`);
 }
@@ -41,7 +41,7 @@ const errorLog = log.bind(null, "ERROR");
 errorLog("Something broke"); // [ERROR] Something broke
 
 // --- Constructor borrowing (old pattern) ---
-console.log("\n--- Constructor borrowing ---");
+// --- Constructor borrowing ---
 function Dog(name) {
   this.name = name;
 }

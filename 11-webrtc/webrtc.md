@@ -14,6 +14,13 @@ WebRTC is a browser-to-browser (P2P) real-time communication framework: **audio/
 // 01-webrtc-concepts.js — run: node 01-webrtc-concepts.js
 ```
 
+#### Gotchas / Edge Cases
+
+- WebRTC is **P2P only after** signaling — before that, peers know nothing about each other. Signaling is mandatory; media never touches the signaling server.
+- WebSocket = always-on server relay (server sees every byte). WebRTC = negotiated P2P (server only sees signaling metadata).
+- For ~4 peers, a full mesh (N² connections) is fine. Beyond that, use an SFU — the JS API stays the same, only the server architecture changes.
+- TURN relays see packet sizes and timing but **cannot** decrypt DTLS-SRTP media.
+
 ---
 
 ## 11.2 Architecture: RTCPeerConnection, Tracks, SDP, ICE
@@ -25,9 +32,16 @@ WebRTC is a browser-to-browser (P2P) real-time communication framework: **audio/
 ### Prove It
 
 ```js
-// 03-rtc-lifecycle.js — run: node 03-rtc-lifecycle.js
+// 03-rtc-lifecycle.js — run: node 03-rtc-lifecycle.js (full state machine run + ICE restart)
 // 04-sdp-explained.js — run: node 04-sdp-explained.js
 ```
+
+#### Gotchas / Edge Cases
+
+- SDP is **plain text** and not secret — it can be logged. The secrets (DTLS keys) are negotiated directly over ICE candidates and never transit signaling.
+- ICE restart requires a **new offer** with fresh `ice-ufrag`/`ice-pwd`. The old candidates are invalidated and new ones are gathered.
+- `disconnected` is **not** `failed` — networks hiccup. Always try ICE restart before declaring the call dead.
+- Perfect negotiation requires one peer to be "polite" (accepts renegotiation even when stable) and the other "impolite" (always triggers renegotiation).
 
 ---
 
@@ -44,6 +58,13 @@ Peers cannot talk to each other before they know how to reach each other — tha
 // peer.html — open TWO tabs in a browser, share camera + chat
 ```
 
+#### Gotchas / Edge Cases
+
+- Signaling must be **authenticated** — an unauthenticated WebSocket server lets anyone join any room and inject fake SDP.
+- SDP is relayed but **never interpreted** by the signaling server — it is opaque text to the server.
+- ICE candidates are **trickled** (sent as found), not batched. The offer/answer contains initial candidates; subsequent candidates arrive via the signaling channel.
+- Token in the WebSocket query string leaks to server logs. Use HttpOnly cookies or short-lived one-time tokens.
+
 ---
 
 ## 11.4 SDP & ICE in Detail: STUN vs TURN
@@ -58,6 +79,13 @@ SDP is a CRLF-separated text format: `v=` version, `o=` origin, `m=` media lines
 // 04-sdp-explained.js — run: node 04-sdp-explained.js (parses a real offer line by line)
 ```
 
+#### Gotchas / Edge Cases
+
+- SDP `c=IN IP4 0.0.0.0` is a placeholder — the **real** address comes via ICE candidates. Never hardcode IPs in SDP.
+- `a=ice-ufrag` and `a=ice-pwd` change on every ICE restart. They are not permanent session identifiers.
+- `a=fingerprint` is the DTLS cert fingerprint — peers mutually authenticate the encryption. A mismatch means tampered or mismatched certificates.
+- BUNDLE (`a=group:BUNDLE`) means all media shares one 5-tuple (one DTLS connection). More m-lines = more bandwidth, but BUNDLE collapses them.
+
 ---
 
 ## 11.5 Media: getUserMedia, Constraints & Tracks
@@ -71,6 +99,13 @@ SDP is a CRLF-separated text format: `v=` version, `o=` origin, `m=` media lines
 ```js
 // 05-media.js — browser code; open inside your page (see peer.html for a full demo)
 ```
+
+#### Gotchas / Edge Cases
+
+- `getUserMedia` requires a **secure context** (HTTPS or localhost). It will throw on `http://` in production.
+- `enumerateDevices()` returns labels only after the user has granted permission — before that, labels are empty strings for privacy.
+- `track.stop()` releases the hardware (camera LED goes off). Removing a track from the connection does NOT stop the hardware — call `stop()` explicitly.
+- A `MediaStream` can be sent to **multiple** `RTCPeerConnection`s simultaneously — useful for multi-party calls without an SFU.
 
 ---
 
@@ -87,6 +122,13 @@ SDP is a CRLF-separated text format: `v=` version, `o=` origin, `m=` media lines
 // peer.html — real chat over a DataChannel between two tabs
 ```
 
+#### Gotchas / Edge Cases
+
+- `bufferedAmount` grows when you send faster than the network can drain. Check it before sending and wait for `bufferedamountlow` to avoid flooding.
+- `maxRetransmits=0` = **unreliable, no retries** (like UDP). `maxPacketLifetime` = drop if not delivered within X ms.
+- Reliable + ordered (default) is **TCP-like** — use for chat, file transfer. Unreliable + unordered is **UDP-like** — use for game state, live cursors.
+- DataChannel message size is capped at ~256KB by default (`maxMessageSize`). Larger payloads need chunking at the application layer.
+
 ---
 
 ## 11.7 Connection Lifecycle, States & Renegotiation
@@ -101,6 +143,13 @@ Connection state is a single property with defined transitions: `new → connect
 // 03-rtc-lifecycle.js — run: node 03-rtc-lifecycle.js (full state machine run + ICE restart)
 ```
 
+#### Gotchas / Edge Cases
+
+- `disconnected` is **not** `failed` — networks blip. Always try ICE restart before declaring the call dead.
+- `renegotiationneeded` fires when tracks change, but **does not** fire if you just change a track's `enabled` state — mute/unmute doesn't trigger renegotiation.
+- Adding a track to one peer requires signaling to the other peer — the remote peer must call `addTrack` on its own `RTCPeerConnection`.
+- `connectionstatechange` and `iceconnectionstatechange` are the events to listen to, not polling. Polling misses transitions.
+
 ---
 
 ## 11.8 Security: DTLS, SRTP & Why Signaling Can't Read Media
@@ -112,8 +161,15 @@ Belt and braces: media and data are **encrypted end-to-end** — DTLS-SRTP for m
 ### Prove It
 
 ```js
-// 07-webrtc-security.js — run: node 07-webrtc-security.js
+// 08-interview-webrtc.js — run: node 08-interview-webrtc.js
 ```
+
+#### Gotchas / Edge Cases
+
+- WebRTC requires **HTTPS** (or localhost) — `http://` will block `getUserMedia` and RTCPeerConnection in production.
+- A TURN relay is needed when **symmetric NAT** or strict firewalls block direct P2P. You know you need it when `candidate-pair` shows `relay` type.
+- STUN is free (public servers like Google's); TURN costs bandwidth. Use STUN first, fall back to TURN only when needed.
+- SDP is **not secret** — it can be logged. The secrets are the DTLS keys negotiated directly between peers.
 
 ---
 
@@ -128,6 +184,13 @@ Debugging WebRTC is state inspection: log `connectionState`, `iceConnectionState
 ```js
 // 03-rtc-lifecycle.js (simulated states with logs) + peer.html (open DevTools, watch states)
 ```
+
+#### Gotchas / Edge Cases
+
+- `connectionstatechange` and `iceconnectionstatechange` are the events to listen to, not polling. Polling misses transitions.
+- `disconnected` is recoverable — networks blip. Only `failed` means give up (or try ICE restart).
+- `renegotiationneeded` fires when tracks change, but **does not** fire if you just change a track's `enabled` state — mute/unmute doesn't trigger renegotiation.
+- Adding a track to one peer requires signaling to the other peer — the remote peer must call `addTrack` on its own `RTCPeerConnection`.
 
 ---
 

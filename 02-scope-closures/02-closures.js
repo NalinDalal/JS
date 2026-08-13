@@ -6,7 +6,7 @@
  */
 
 // --- Basic closure: makeCounter ---
-console.log("--- makeCounter ---");
+// --- makeCounter ---
 function makeCounter() {
   let count = 0; // private variable
   return {
@@ -24,21 +24,21 @@ console.log(counter.decrement()); // 1
 // count is not accessible directly — it's private via closure
 
 // --- Closure in a loop: var pitfall ---
-console.log("\n--- var in loop (no block scope) ---");
+// --- var in loop (no block scope) ---
 for (var i = 0; i < 3; i++) {
   setTimeout(() => console.log("var:", i), 100);
 }
 // Output: var: 3, var: 3, var: 3 — all closures share the same `i`
 
 // --- Closure in a loop: let fix ---
-console.log("\n--- let in loop (block scope) ---");
+// --- let in loop (block scope) ---
 for (let j = 0; j < 3; j++) {
   setTimeout(() => console.log("let:", j), 100);
 }
 // Output: let: 0, let: 1, let: 2 — each iteration gets its own `j`
 
 // --- Closure retains reference, not value ---
-console.log("\n--- Closure captures variable, not copy ---");
+// --- Closure captures variable, not copy ---
 function outer() {
   let x = 10;
   return function inner() {
@@ -51,7 +51,7 @@ let x = 999; // global x — doesn't affect closure
 fn(); // 10 — closure captures the variable, not a copy
 
 // --- Memory: closure keeps outer scope alive ---
-console.log("\n--- Memory retention ---");
+// --- Memory retention ---
 function createHeavy() {
   const largeArray = new Array(1000).fill("data");
   return function () {

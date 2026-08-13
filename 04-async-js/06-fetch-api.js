@@ -8,8 +8,8 @@
  * Comment out fetch calls if offline.
  */
 
-console.log("--- Fetch API examples ---");
-console.log("(These require network access — commented by default for safety)");
+// --- Fetch API examples ---
+// (These require network access — commented by default for safety)
 
 // Basic fetch
 async function basicFetch() {
@@ -65,7 +65,7 @@ async function withAbort() {
     console.log("Data:", data);
   } catch (err) {
     if (err.name === "AbortError") {
-      console.log("Request was cancelled (AbortError)");
+      // Request was cancelled (AbortError)
     } else {
       console.error("Network error:", err);
     }
@@ -83,19 +83,19 @@ async function responseProps() {
 }
 
 // Run the error handling and response props (they're fast)
-console.log("\n--- Error handling (404 doesn't reject fetch) ---");
+// --- Error handling (404 doesn't reject fetch) ---
 // errorHandling();
 
-console.log("\n--- Response properties ---");
+// --- Response properties ---
 // responseProps();
 
-console.log("\n--- AbortController example ---");
+// --- AbortController example ---
 // withAbort();
 
-console.log("(Uncomment function calls above to test with network)");
+// (Uncomment function calls above to test with network)
 
 // Summary of key patterns:
-console.log("\n--- Key patterns ---");
+// --- Key patterns ---
 console.log(`
 // Pattern 1: Basic fetch + error check
 async function safeFetch(url) {

@@ -6,7 +6,7 @@
  */
 
 // --- Class Declaration & Expression ---
-console.log("--- Class Declaration ---");
+// --- Class Declaration ---
 class Person {
   constructor(name) {
     this.name = name;
@@ -28,7 +28,7 @@ const dog = new Animal("dog");
 console.log(dog.type); // "dog"
 
 // --- Private fields (#) ---
-console.log("\n--- Private fields ---");
+// --- Private fields ---
 class User {
   #password;
 
@@ -58,7 +58,7 @@ console.log(u.validate("secret123")); // true
 // u.#password; // SyntaxError — private
 
 // --- Static methods ---
-console.log("\n--- Static methods ---");
+// --- Static methods ---
 class MathHelper {
   static PI = 3.14159;
 
@@ -71,7 +71,7 @@ console.log(MathHelper.PI); // 3.14159
 console.log(MathHelper.circleArea(5)); // 78.53975
 
 // --- extends and super ---
-console.log("\n--- extends and super ---");
+// --- extends and super ---
 class AnimalBase {
   constructor(name) {
     this.name = name;
@@ -97,7 +97,7 @@ console.log(rex instanceof Dog); // true
 console.log(rex instanceof AnimalBase); // true
 
 // --- instanceof ---
-console.log("\n--- instanceof ---");
+// --- instanceof ---
 class Base {}
 class Child extends Base {}
 

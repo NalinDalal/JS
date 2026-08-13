@@ -41,6 +41,7 @@ Every module ships TWO interview artifacts: a code-style `*-interview-*.js` (run
 | **08-error-handling** | try/catch/finally, Error types, stack traces, debugging | [errors.md](08-error-handling/errors.md) (676 lines) | Ongoing |
 | **09-modern-patterns** | Destructuring, optional chaining, nullish coalescing, spread, regex, dates, debounce/throttle | [modern-syntax.md](09-modern-patterns/modern-syntax.md) (1272 lines) + [js-lectures-extras.md](09-modern-patterns/js-lectures-extras.md) (448 lines) | Ongoing |
 | **10-auth-security** | JWT (structure/signing/verification), sessions, refresh rotation, password hashing, OAuth2+PKCE, WebSocket auth, XSS/CSRF/CORS, token storage | [auth-security.md](10-auth-security/auth-security.md) + 12 code files (zero deps, Node built-ins) | Ongoing |
+| **11-webrtc** | P2P media/data, signaling, SDP/ICE, STUN/TURN, DataChannels, DTLS-SRTP security | [webrtc.md](11-webrtc/webrtc.md) + 8 code files (zero deps, Node built-ins) | Ongoing |
 
 ---
 
@@ -122,4 +123,15 @@ Every module ships TWO interview artifacts: a code-style `*-interview-*.js` (run
 - [10-token-storage.js](10-auth-security/10-token-storage.js) — storage trade-offs + 401→refresh→replay interceptor
 - [11-web-attacks.js](10-auth-security/11-web-attacks.js) — XSS, CSRF, SameSite, CORS, security headers
 - [12-interview-questions.js](10-auth-security/12-interview-questions.js) — 18 Q&A to say out loud
+
+### 11-webrtc
+- [webrtc.md](11-webrtc/webrtc.md) — WebRTC vs WebSocket, RTCPeerConnection, SDP, ICE, STUN/TURN, DataChannels, DTLS-SRTP security, connection lifecycle, troubleshooting
+- [01-webrtc-concepts.js](11-webrtc/01-webrtc-concepts.js) — WebRTC vs WS decision table + architecture map
+- [02-signaling-server.js](11-webrtc/02-signaling-server.js) — from-scratch WS signaling server: auth + rooms + SDP/ICE relay
+- [03-rtc-lifecycle.js](11-webrtc/03-rtc-lifecycle.js) — full state machine: offer/answer, ICE trickle, ICE restart, perfect negotiation
+- [04-sdp-explained.js](11-webrtc/04-sdp-explained.js) — parses a real Chrome SDP offer line by line + ICE candidates
+- [05-media.js](11-webrtc/05-media.js) — getUserMedia, constraints, tracks (browser code)
+- [06-datachannel-simulation.js](11-webrtc/06-datachannel-simulation.js) — reliable vs unreliable, ordered vs unordered, backpressure
+- [07-webrtc-security.js](11-webrtc/07-webrtc-security.js) — DTLS-SRTP key derivation, threat model, why signaling can't read media
+- [08-interview-webrtc.js](11-webrtc/08-interview-webrtc.js) — 14 Q&A to say out loud
 

@@ -6,7 +6,7 @@
  */
 
 // --- Template Literal Interpolation ---
-console.log("--- Template Literals ---");
+// --- Template Literals ---
 const name = "JS";
 const str = `Hello ${name.toUpperCase()}!`;
 console.log(str); // "Hello JS!"
@@ -15,7 +15,7 @@ console.log(str); // "Hello JS!"
 console.log(`2 + 3 = ${2 + 3}`); // "2 + 3 = 5"
 
 // --- Multiline ---
-console.log("\n--- Multiline ---");
+// --- Multiline ---
 const html = `
   <div>
     <h1>${name}</h1>
@@ -24,34 +24,34 @@ const html = `
 console.log(html);
 
 // --- String Methods ---
-console.log("\n--- includes / startsWith / endsWith ---");
+// --- includes / startsWith / endsWith ---
 console.log("hello".includes("ell")); // true
 console.log("hello".startsWith("he")); // true
 console.log("hello".endsWith("lo")); // true
 console.log("hello".includes("xyz")); // false
 
-console.log("\n--- padStart / padEnd ---");
+// --- padStart / padEnd ---
 console.log("5".padStart(3, "0")); // "005"
 console.log("5".padEnd(3, "0")); // "500"
 console.log("hi".padStart(10, "-")); // "--------hi"
 
-console.log("\n--- split ---");
+// --- split ---
 console.log("a,b,c".split(",")); // ["a", "b", "c"]
 console.log("hello".split("")); // ["h","e","l","l","o"]
 
-console.log("\n--- repeat ---");
+// --- repeat ---
 console.log("hi".repeat(3)); // "hihihi"
 
-console.log("\n--- trim ---");
+// --- trim ---
 console.log("  hi  ".trim()); // "hi"
 console.log("  hi  ".trimStart()); // "hi  "
 console.log("  hi  ".trimEnd()); // "  hi"
 
-console.log("\n--- slice ---");
+// --- slice ---
 console.log("hello".slice(1, 3)); // "el"
 console.log("hello".slice(-2)); // "lo"
 
-console.log("\n--- indexOf ---");
+// --- indexOf ---
 console.log("hello".indexOf("l")); // 2
 console.log("hello".indexOf("l", 3)); // 3 (start from index 3)
 

@@ -6,7 +6,7 @@
  */
 
 // --- Classic Module Pattern ---
-console.log("--- Classic Module Pattern ---");
+// --- Classic Module Pattern ---
 var Calculator = (function () {
   var result = 0; // private
 
@@ -26,7 +26,7 @@ console.log(Calculator.getResult()); // 8
 // Calculator.result is undefined — private via closure
 
 // --- Revealing Module Pattern ---
-console.log("\n--- Revealing Module Pattern ---");
+// --- Revealing Module Pattern ---
 var BankAccount = (function () {
   var balance = 0; // private
 
@@ -54,7 +54,7 @@ BankAccount.withdraw(30);
 console.log(BankAccount.getBalance()); // 70
 
 // --- UserModule with private name ---
-console.log("\n--- UserModule (private name) ---");
+// --- UserModule (private name) ---
 var UserModule = (function () {
   var name = "Alice"; // private
 

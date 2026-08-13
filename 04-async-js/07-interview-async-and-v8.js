@@ -2,13 +2,15 @@
  * Module 04 — Interview + V8 Architecture
  * Micro/macro, all vs allSettled, async mistakes, safeFetch, V8 optimization
  *
+ * Cross-reference: 08-interview-questions.js (text bank)
+ *
  * Run: node 07-interview-async-and-v8.js
  */
 
 // ============================================================
 // Q2: Microtask vs Macrotask
 // ============================================================
-console.log("--- Q2: Microtask vs Macrotask ---");
+// --- Q2: Microtask vs Macrotask ---
 setTimeout(() => console.log("macrotask"), 0);
 Promise.resolve().then(() => console.log("microtask"));
 console.log("sync");
@@ -17,7 +19,7 @@ console.log("sync");
 // ============================================================
 // Q3: Promise.all vs Promise.allSettled
 // ============================================================
-console.log("\n--- Q3: all vs allSettled ---");
+// --- Q3: all vs allSettled ---
 // Promise.all — short-circuits on first rejection
 const pAll = Promise.all([
   Promise.resolve("good"),
@@ -42,7 +44,7 @@ pAllSettled.then((results) => {
 // ============================================================
 // Q4: Common async/await mistakes
 // ============================================================
-console.log("\n--- Q4: async/await mistakes ---");
+// --- Q4: async/await mistakes ---
 
 // Mistake 1: No try/catch
 // ❌ const data = await fetch(url);
@@ -70,7 +72,7 @@ correctParallel();
 // ============================================================
 // Q5: async/await vs .then() equivalence
 // ============================================================
-console.log("\n--- Q5: .then() vs async/await ---");
+// --- Q5: .then() vs async/await ---
 function fetchUser(id) {
   return Promise.resolve({ id, name: "Alice" });
 }
@@ -105,7 +107,7 @@ loadPosts(1);
 // ============================================================
 // Q6: safeFetch pattern
 // ============================================================
-console.log("\n--- Q6: safeFetch pattern ---");
+// --- Q6: safeFetch pattern ---
 async function safeFetch(url, options = {}) {
   try {
     const response = await fetch(url, options);
@@ -129,12 +131,12 @@ async function safeFetch(url, options = {}) {
 }
 
 // (Not actually called — requires network)
-console.log("safeFetch URL checking pattern defined");
+// safeFetch URL checking pattern defined
 
 // ============================================================
 // Section 4.11: V8 Engine Optimization
 // ============================================================
-console.log("\n--- V8 Engine: Consistent types matter ---");
+// --- V8 Engine: Consistent types matter ---
 
 // V8 optimizes for consistent types
 function add(a, b) {
@@ -145,19 +147,19 @@ function add(a, b) {
 add(1, 2);
 add(3, 4);
 add(5, 6);
-console.log("  add(1, 2) - monomorphic: V8 optimizes");
+// add(1, 2) - monomorphic: V8 optimizes
 
 // Polymorphic: mixed types -> deopt
-console.log("  add(1, 'hello') - polymorphic: deoptimization");
+// add(1, 'hello') - polymorphic: deoptimization
 
 // Object shape consistency
 const obj1 = { x: 1, y: 2 };
 const obj2 = { x: 3, y: 4 };
-console.log("  obj1, obj2 - same hidden class (fast)");
+// obj1, obj2 - same hidden class (fast)
 
 const obj3 = { x: 5 };
 obj3.y = 6;
-console.log("  obj3 - different hidden class (slower)");
+// obj3 - different hidden class (slower)
 
 // --- Expected Output ---
 // --- Q2: Microtask vs Macrotask ---

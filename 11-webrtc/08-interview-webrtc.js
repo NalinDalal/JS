@@ -28,7 +28,7 @@ for (const [q, a] of qa) {
   console.log("   →", a);
 }
 
-console.log("\n--- Whiteboard practice ---");
-console.log("1. Two boxes (A, B) + server box. Draw WS signaling arrows, then UDP media arrows.");
-console.log("2. Write the three m-lines of a mini SDP: audio/video/application with rtpmap lines.");
-console.log("3. Timeline: offer -> answer -> trickle candidates -> checking -> connected.");
+// --- Whiteboard practice ---
+// 1. Two boxes (A, B) + server box. Draw WS signaling arrows, then UDP media arrows.
+// 2. Write the three m-lines of a mini SDP: audio/video/application with rtpmap lines.
+// 3. Timeline: offer -> answer -> trickle candidates -> checking -> connected.

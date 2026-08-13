@@ -5,7 +5,7 @@
  * Run: node 04-nullish-coalescing.js
  */
 
-console.log("--- || vs ?? ---");
+// --- || vs ?? ---
 const score = 0;
 const name = "";
 const isActive = false;
@@ -19,13 +19,13 @@ console.log('name ?? "default":', name ?? "default");     // "" (empty string is
 console.log('isActive || true:', isActive || true);       // true
 console.log('isActive ?? true:', isActive ?? true);       // false
 
-console.log("\n--- null and undefined trigger ?? ---");
+// --- null and undefined trigger ?? ---
 let a = null;
 let b = undefined;
 console.log("null ?? 'fallback':", a ?? "fallback");       // "fallback"
 console.log("undefined ?? 'fallback':", b ?? "fallback");  // "fallback"
 
-console.log("\n--- Chaining with ?. ---");
+// --- Chaining with ?. ---
 const user = { profile: { nickname: "" } };
 // Correct way to get display name
 const displayName = user?.profile?.nickname ?? "Anonymous";
@@ -34,7 +34,7 @@ console.log("displayName:", displayName); // "" (empty string kept)
 const displayName2 = user?.profile?.nickname || "Anonymous";
 console.log("displayName2:", displayName2); // "Anonymous" (wrong — lost empty string)
 
-console.log("\n--- Precedence: ?? is lower than || and && ---");
+// --- Precedence: ?? is lower than || and && ---
 // Must use parentheses when mixing with || or &&
 // const x = a ?? b || c; // SyntaxError
 const c = "fallback";

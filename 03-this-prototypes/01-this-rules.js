@@ -8,7 +8,7 @@
 // ============================================================
 // Rule 1: Default Binding
 // ============================================================
-console.log("--- Rule 1: Default Binding ---");
+// --- Rule 1: Default Binding ---
 
 function nonStrict() {
   console.log("non-strict this:", typeof this);
@@ -24,7 +24,7 @@ strict();
 // ============================================================
 // Rule 2: Implicit Binding
 // ============================================================
-console.log("\n--- Rule 2: Implicit Binding ---");
+// --- Rule 2: Implicit Binding ---
 
 const user = {
   name: "Alice",
@@ -42,7 +42,7 @@ const greetFn = user.greet;
 // ============================================================
 // Rule 3: Explicit Binding (call, apply, bind)
 // ============================================================
-console.log("\n--- Rule 3: Explicit Binding ---");
+// --- Rule 3: Explicit Binding ---
 
 function greet(greeting) {
   console.log(`${greeting}, ${this.name}`);
@@ -58,7 +58,7 @@ bound("Hey"); // "Hey, Bob"
 // ============================================================
 // Rule 4: `new` Binding
 // ============================================================
-console.log("\n--- Rule 4: new Binding ---");
+// --- Rule 4: new Binding ---
 
 function Person(name) {
   this.name = name;
@@ -70,7 +70,7 @@ console.log(alice.name); // "Alice"
 // ============================================================
 // Arrow Functions: Lexical `this`
 // ============================================================
-console.log("\n--- Arrow: Lexical this ---");
+// --- Arrow: Lexical this ---
 
 const team = {
   name: "Dev",
@@ -87,7 +87,7 @@ team.listMembers();
 // ============================================================
 // Prove It: regular vs arrow
 // ============================================================
-console.log("\n--- Prove It ---");
+// --- Prove It ---
 const obj = {
   name: "Test",
   regular() {

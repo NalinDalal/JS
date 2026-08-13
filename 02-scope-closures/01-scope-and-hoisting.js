@@ -9,7 +9,7 @@
 // 2.1 LEXICAL SCOPE
 // ============================================================
 
-console.log("--- Nested functions form a scope chain ---");
+// --- Nested functions form a scope chain ---
 let global = "I'm global";
 
 function outer() {
@@ -28,7 +28,7 @@ function outer() {
 
 outer();
 
-console.log("\n--- Var shadowing in nested functions ---");
+// --- Var shadowing in nested functions ---
 var x = 10;
 
 function foo() {
@@ -41,7 +41,7 @@ function foo() {
 
 foo();
 
-console.log("\n--- Block scope proof ---");
+// --- Block scope proof ---
 let a = 1;
 if (true) {
   let a = 2; // separate block-scoped variable
@@ -53,17 +53,17 @@ console.log(a); // 1 — block-scoped let doesn't leak out
 // 2.2 HOISTING
 // ============================================================
 
-console.log("\n--- var hoisting ---");
+// --- var hoisting ---
 console.log(b); // undefined (declared, not yet assigned)
 var b = 5;
 
-console.log("\n--- function hoisting ---");
+// --- function hoisting ---
 sayHi(); // "Hi!" — works before declaration
 function sayHi() {
-  console.log("Hi!");
+  // Hi!
 }
 
-console.log("\n--- let/const TDZ ---");
+// --- let/const TDZ ---
 try {
   console.log(c); // ReferenceError
 } catch (e) {
@@ -71,7 +71,7 @@ try {
 }
 let c = 10;
 
-console.log("\n--- class TDZ ---");
+// --- class TDZ ---
 try {
   const obj = new MyClass(); // ReferenceError
 } catch (e) {

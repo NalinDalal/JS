@@ -2,13 +2,15 @@
  * Module 02 — Interview Questions
  * makeGreeter, TDZ, var/let loop, private variables, scope chain, IIFE
  *
+ * Cross-reference: 06-interview-questions.js (text bank)
+ *
  * Run: node 05-interview-closures.js
  */
 
 // ============================================================
 // Q1: What is a closure? — makeGreeter
 // ============================================================
-console.log("--- Q1: Closure (makeGreeter) ---");
+// --- Q1: Closure (makeGreeter) ---
 function makeGreeter(greeting) {
   return function (name) {
     return `${greeting}, ${name}!`;
@@ -20,7 +22,7 @@ console.log(hello("Alice")); // "Hello, Alice!" — closure over `greeting`
 // ============================================================
 // Q2: What is TDZ?
 // ============================================================
-console.log("\n--- Q2: TDZ ---");
+// --- Q2: TDZ ---
 {
   // TDZ starts here for x
   try {
@@ -35,7 +37,7 @@ console.log("\n--- Q2: TDZ ---");
 // ============================================================
 // Q3: var vs let in for-loop with setTimeout
 // ============================================================
-console.log("\n--- Q3: var vs let in loop ---");
+// --- Q3: var vs let in loop ---
 for (var i = 0; i < 3; i++) {
   setTimeout(() => console.log("var:", i), 100);
 }
@@ -49,7 +51,7 @@ for (let j = 0; j < 3; j++) {
 // ============================================================
 // Q4: Private variables — module pattern + class with #
 // ============================================================
-console.log("\n--- Q4: Private variables ---");
+// --- Q4: Private variables ---
 // Module pattern
 function createAccount(balance) {
   return {
@@ -88,7 +90,7 @@ console.log("Class # balance:", acc.getBalance()); // 300
 // ============================================================
 // Q5: Scope chain with nested example
 // ============================================================
-console.log("\n--- Q5: Scope chain ---");
+// --- Q5: Scope chain ---
 const a = 1;
 function outerFn() {
   const b = 2;
@@ -106,7 +108,7 @@ outerFn();
 // ============================================================
 // Q6: IIFE returning computed value
 // ============================================================
-console.log("\n--- Q6: IIFE ---");
+// --- Q6: IIFE ---
 const result = (function () {
   const data = [1, 2, 3];
   return data.map((x) => x * 2);

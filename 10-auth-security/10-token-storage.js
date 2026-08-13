@@ -6,48 +6,19 @@
  * Run: node 10-token-storage.js
  */
 
-console.log("--- Where can the access token live? ---");
+// --- Where can the access token live? ---
+// Comparison table (see auth-security.md 10.10 for full prose):
+//   localStorage:        XSS-VULNERABLE | CSRF-SAFE | Survives reloads, leaks to every 3rd-party script
+//   sessionStorage:      XSS-VULNERABLE | CSRF-SAFE | Cleared when tab closes
+//   In-memory variable:  XSS-RESISTANT | CSRF-SAFE | Lost on reload -> refresh from cookie
+//   HttpOnly cookie:     XSS-PROOF | CSRF-RISK | Refresh token's home; Secure flag required
 
-const options = [
-  {
-    where: "localStorage",
-    xss: "XSS-VULNERABLE — any injected script reads it (localStorage.getItem)",
-    csrf: "CSRF-SAFE — sent via Authorization header, not auto-attached",
-    note: "Survives reloads, leaks to every 3rd-party script you trust",
-  },
-  {
-    where: "sessionStorage",
-    xss: "XSS-VULNERABLE — same read access as localStorage",
-    csrf: "CSRF-SAFE — header-based",
-    note: "Cleared when the tab closes — slightly smaller blast radius",
-  },
-  {
-    where: "In-memory variable",
-    xss: "XSS-RESISTANT — not readable by injected scripts",
-    csrf: "CSRF-SAFE — header-based",
-    note: "Lost on reload — must refresh from the HttpOnly cookie",
-  },
-  {
-    where: "HttpOnly cookie",
-    xss: "XSS-PROOF — document.cookie cannot read it",
-    csrf: "CSRF-RISK — cookies auto-attach; mitigate with SameSite=Strict/Lax + CSRF tokens",
-    note: "The refresh token's home; Secure flag required; cross-site contexts get tricky",
-  },
-];
+// --- Recommended modern stack ---
+// access token : in memory (XSS-resistant, short-lived)
+// refresh token: HttpOnly + Secure + SameSite=Strict cookie (XSS-proof)
+// on load      : memory empty -> silent refresh using the cookie
 
-for (const o of options) {
-  console.log(`\n[${o.where}]`);
-  console.log("  XSS:  " + o.xss);
-  console.log("  CSRF: " + o.csrf);
-  console.log("  Note: " + o.note);
-}
-
-console.log("\n--- Recommended modern stack ---");
-console.log("access token : in memory (XSS-resistant, short-lived)");
-console.log("refresh token: HttpOnly + Secure + SameSite=Strict cookie (XSS-proof)");
-console.log("on load      : memory empty -> silent refresh using the cookie");
-
-console.log("\n--- 401 -> refresh -> replay interceptor (canonical pattern) ---");
+// --- 401 -> refresh -> replay interceptor (canonical pattern) ---
 
 // The network layer every SPA auth library (axios interceptors, etc.) implements:
 class ApiClient {

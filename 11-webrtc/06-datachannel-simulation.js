@@ -44,13 +44,13 @@ class DataChannelSim {
 
   // simulate two peers sharing the semantics: reliable+ordered vs unreliable+unordered
   static async demo() {
-    console.log("--- chat: reliable + ordered (TCP-like) ---");
+    // --- chat: reliable + ordered (TCP-like) ---
     const chat = new DataChannelSim("chat", { reliable: true, ordered: true });
     await new Promise((r) => setTimeout(r, 20)); // wait until state === "open"
     ["hello", "how are you?", "brb"].forEach((m, i) => chat.send(m, i * 50));
     // every message arrives, in order, exactly once
 
-    console.log("\n--- game updates: unreliable + unordered (UDP-like) ---");
+    // --- game updates: unreliable + unordered (UDP-like) ---
     const game = new DataChannelSim("game", { reliable: false, ordered: false, maxRetransmits: 0, dropRate: 0.3 });
     await new Promise((r) => setTimeout(r, 20));
     let sent = 0, dropped = 0;
@@ -61,7 +61,7 @@ class DataChannelSim {
     }
     console.log(`  dropped ${dropped}/${sent} — latest-state wins in games, nobody retransmits stale positions`);
 
-    console.log("\n--- file transfer: reliable, but watch backpressure ---");
+    // --- file transfer: reliable, but watch backpressure ---
     const file = new DataChannelSim("file", { reliable: true });
     await new Promise((r) => setTimeout(r, 20));
     const CHUNK = 64 * 1024; // 64KB — sizes near WebRTC's 256KB maxMessageSize
@@ -70,16 +70,16 @@ class DataChannelSim {
       file.bufferedAmount += CHUNK;
       ok = file.bufferedAmount < 512 * 1024; // bufferedAmountLowThreshold pattern
     }
-    console.log(`  bufferedAmount grew past 512KB → app must wait for 'bufferedamountlow' before sending more`);
+    // bufferedAmount grew past 512KB → app must wait for 'bufferedamountlow' before sending more
   }
 }
 
 DataChannelSim.demo();
 
-console.log("\n--- Summary ---");
-console.log("reliable+ordered  : chat, file transfer (TCP semantics)");
+// --- Summary ---
+// reliable+ordered  : chat, file transfer (TCP semantics)
 // unreliable+unordered: position/state sync, realtime games (UDP semantics)
 // maxRetransmits=0  : fire-and-forget (like ULP — unreliable, low latency)
-console.log("maxPacketLifetime : 'drop if not delivered in X ms'");
+// maxPacketLifetime : 'drop if not delivered in X ms'
 // 'bufferedamountlow' + bufferedAmountLowThreshold: backpressure without flooding
 // Real impl: SCTP maps each DataChannel to one stream; multiple channels multiplexed.

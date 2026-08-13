@@ -464,7 +464,7 @@ class Config {
   static db;
   static {
     // Runs once when class is evaluated
-    console.log('Initializing...');
+    // Initializing...
     Config.db = connectToDatabase();
   }
 }

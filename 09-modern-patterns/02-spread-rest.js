@@ -5,7 +5,7 @@
  * Run: node 02-spread-rest.js
  */
 
-console.log("--- Spread (...) for arrays ---");
+// --- Spread (...) for arrays ---
 const arr1 = [1, 2, 3];
 const arr2 = [4, 5, 6];
 const combined = [...arr1, ...arr2];
@@ -15,7 +15,7 @@ const copy = [...arr1];
 console.log("copy:", copy); // [1, 2, 3] — shallow
 console.log("copy === arr1:", copy === arr1); // false
 
-console.log("\n--- Spread for objects ---");
+// --- Spread for objects ---
 const defaults = { theme: "light", lang: "en" };
 const overrides = { theme: "dark" };
 const config = { ...defaults, ...overrides };
@@ -26,16 +26,16 @@ const obj = { a: 1, b: 2 };
 const merged = { ...obj, ...{ b: 3, c: 4 } };
 console.log("merged:", merged); // { a: 1, b: 3, c: 4 }
 
-console.log("\n--- Spread iterables (strings) ---");
+// --- Spread iterables (strings) ---
 const chars = [..."hello"];
 console.log("chars:", chars); // ["h", "e", "l", "l", "o"]
 
-console.log("\n--- Spread into arguments ---");
+// --- Spread into arguments ---
 function sum(a, b, c) { return a + b + c; }
 const nums = [1, 2, 3];
 console.log("sum(...nums):", sum(...nums)); // 6
 
-console.log("\n--- Rest parameters ---");
+// --- Rest parameters ---
 function logAll(...args) {
   console.log("Args:", args); // Array of all arguments
 }
@@ -47,7 +47,7 @@ function multiply(factor, ...nums) {
 }
 console.log("multiply(2, 1, 2, 3):", multiply(2, 1, 2, 3)); // [2, 4, 6]
 
-console.log("\n--- Rest in destructuring ---");
+// --- Rest in destructuring ---
 const [first, ...rest] = [1, 2, 3, 4];
 console.log(first, rest); // 1 [2, 3, 4]
 

@@ -5,7 +5,7 @@
  * Run: node 02-event-loop.js
  */
 
-console.log("--- Basic event loop ordering ---");
+// --- Basic event loop ordering ---
 setTimeout(() => console.log("1: setTimeout"), 0);
 Promise.resolve().then(() => console.log("2: Promise"));
 queueMicrotask(() => console.log("3: queueMicrotask"));
@@ -13,7 +13,7 @@ console.log("4: sync");
 // Output: 4 → 2 → 3 → 1
 // sync runs first, then ALL microtasks (Promise, queueMicrotask), then macrotask (setTimeout)
 
-console.log("\n--- Nested microtasks drain completely ---");
+// --- Nested microtasks drain completely ---
 Promise.resolve().then(() => {
   console.log("micro 1");
   Promise.resolve().then(() => console.log("micro 2"));
@@ -22,7 +22,7 @@ console.log("sync");
 // Output: sync → micro 1 → micro 2
 // Microtask queue is drained completely before macrotasks
 
-console.log("\n--- Macrotask interleaving ---");
+// --- Macrotask interleaving ---
 setTimeout(() => console.log("timeout 1"), 0);
 setTimeout(() => console.log("timeout 2"), 0);
 Promise.resolve().then(() => console.log("promise 1"));

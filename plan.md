@@ -624,7 +624,7 @@ class WeatherApp {
   async getCurrentWeather(city) {
     const cacheKey = `current_${city}`;
     if (this.cache.has(cacheKey)) {
-      console.log('Cache hit!');
+      // Cache hit!
       return this.cache.get(cacheKey);
     }
     

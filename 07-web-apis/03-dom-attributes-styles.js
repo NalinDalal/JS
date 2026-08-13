@@ -5,7 +5,7 @@
  * Paste in browser DevTools console.
  */
 
-console.log("--- className vs classList ---");
+// --- className vs classList ---
 const el = document.getElementById("my-element");
 console.log("className (string):", el?.className);
 
@@ -18,7 +18,7 @@ if (el) {
   console.log("contains 'active':", el.classList.contains("active")); // true
 }
 
-console.log("\n--- dataset (data-* attributes) ---");
+// --- dataset (data-* attributes) ---
 // <div data-id="123" data-user-name="Alice"></div>
 const userCard = document.querySelector('[data-id]');
 console.log("dataset.id:", userCard?.dataset.id);         // "123"
@@ -30,11 +30,11 @@ if (userCard) {
   console.log("dataset.role:", userCard.dataset.role); // "admin"
 }
 
-console.log("\n--- getAttribute / setAttribute ---");
+// --- getAttribute / setAttribute ---
 console.log("getAttribute('data-id'):", userCard?.getAttribute("data-id"));
 userCard?.setAttribute("aria-label", "User card");
 
-console.log("\n--- style property (inline) ---");
+// --- style property (inline) ---
 const box = document.getElementById("box");
 if (box) {
   box.style.backgroundColor = "blue";
@@ -43,6 +43,6 @@ if (box) {
   console.log("style.color:", box.style.color);
 }
 
-console.log("\n--- getComputedStyle (read actual, including CSS) ---");
+// --- getComputedStyle (read actual, including CSS) ---
 const computed = getComputedStyle(box);
 console.log("computed font-size:", computed.fontSize); // includes stylesheets

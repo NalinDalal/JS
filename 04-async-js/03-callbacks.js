@@ -5,7 +5,7 @@
  * Run: node 03-callbacks.js
  */
 
-console.log("--- Basic callback ---");
+// --- Basic callback ---
 function fetchData(callback) {
   setTimeout(() => {
     callback(null, { name: "Alice" });
@@ -17,19 +17,19 @@ fetchData((err, data) => {
   else console.log(data); // { name: "Alice" }
 });
 
-console.log("fetchData started (waiting 500ms)...");
+// fetchData started (waiting 500ms)...
 
-console.log("\n--- Callback execution ordering (with fs) ---");
+// --- Callback execution ordering (with fs) ---
 const fs = require("fs");
 
-console.log("1: before readFile");
+// 1: before readFile
 fs.readFile(__filename, "utf8", (err, data) => {
   console.log("3: inside callback (first 50 chars):", data.slice(0, 50));
 });
-console.log("2: after readFile");
+// 2: after readFile
 // Output: 1 → 2 → 3
 
-console.log("\n--- Callback Hell (pyramid of doom) ---");
+// --- Callback Hell (pyramid of doom) ---
 // This demonstrates the pattern (nested callbacks)
 function getUser(id, cb) {
   setTimeout(() => cb(null, { id, name: "Alice" }), 100);

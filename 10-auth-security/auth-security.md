@@ -14,6 +14,12 @@ Authentication is the process of verifying **who you are** — proving identity 
 // 01-auth-concepts.js — run: node 01-auth-concepts.js
 ```
 
+#### Gotchas / Edge Cases
+
+- AuthN and AuthZ are separate concerns. A user can be authenticated (valid token) but unauthorized (insufficient permissions). Never conflate "is logged in" with "can do this action."
+- The order is always: authenticate FIRST, then authorize on EVERY request. Session expiry, token revocation, and permission changes must be re-checked per request — not cached at login time.
+- Authentication proves identity; authorization checks permissions. Interviewers love to test this distinction.
+
 ---
 
 ## 10.2 Session-Based vs Token-Based Auth
@@ -28,6 +34,13 @@ Session auth is **stateful**: the server stores the session (in memory, Redis, D
 // 05-session-auth.js — run: node 05-session-auth.js
 ```
 
+#### Gotchas / Edge Cases
+
+- Sessions are **stateful** — the server MUST store them. In-memory `Map` is fine for demos, but production needs Redis/DB for multi-server deployments.
+- Session IDs must be **cryptographically random** (use `crypto.randomBytes`, not `Math.random`). Predictable session IDs enable session fixation attacks.
+- Sessions can be revoked instantly (delete from store), which is their main advantage over JWTs.
+- Cookie attributes that matter: `HttpOnly` (JS can't read), `Secure` (HTTPS only), `SameSite=Strict/Lax` (CSRF protection), `Max-Age`/`Expires` (lifetime).
+
 ---
 
 ## 10.3 JWT Structure: header.payload.signature
@@ -41,6 +54,13 @@ A JWT is three base64url-encoded segments joined by dots. The **header** declare
 ```js
 // 02-jwt-structure.js — run: node 02-jwt-structure.js
 ```
+
+#### Gotchas / Edge Cases
+
+- JWT payload is **NOT encrypted** — only base64url encoded. Anyone who intercepts the token can decode and read the payload. Never put secrets, passwords, or PII in the payload.
+- `alg: none` attack: if the server blindly trusts the header's `alg`, an attacker can strip the signature and set `alg: none`. Always pin the expected algorithm server-side.
+- `exp`, `nbf`, `iss`, `aud` are **registered claims** but not enforced by the JWT spec — your server must validate them.
+- The three segments are `base64url(header).base64url(payload).base64url(signature)` — any deviation (extra dots, wrong encoding) breaks the token.
 
 ---
 
@@ -57,6 +77,13 @@ HS256 (HMAC-SHA256) is **symmetric**: the same shared secret signs and verifies 
 // 04-jwt-verification.js — run: node 04-jwt-verification.js
 ```
 
+#### Gotchas / Edge Cases
+
+- HS256 is symmetric — the same secret both signs and verifies. Any service holding the secret can **forge tokens**. Fine for a monolith, dangerous across microservices.
+- RS256 is asymmetric — only the private key signs; the public key verifies. Verification services never need the private key, so they can't forge.
+- Key size matters: RSA keys should be at least 2048 bits (4096 for long-lived tokens). Smaller keys are breakable.
+- `crypto.verify()` with RSA returns `true`/`false` — it does NOT throw on bad signatures. Check the return value explicitly.
+
 ---
 
 ## 10.5 JWT Verification & Claims Validation
@@ -70,6 +97,13 @@ Verification is a three-step gauntlet. **1) Signature check** — recompute the 
 ```js
 // 04-jwt-verification.js — run: node 04-jwt-verification.js
 ```
+
+#### Gotchas / Edge Cases
+
+- Verification is a **three-step gauntlet**: signature → algorithm → claims. Skipping any step is a vulnerability.
+- `exp` (expiry) is the most critical claim. An expired token must be rejected, even if the signature is valid. Libraries often do this automatically — verify yours does.
+- Clock skew between servers can cause `nbf`/`exp` failures. Allow a small leeway (e.g., 30–60 seconds) in production.
+- `aud` and `iss` prevent token reuse across services. A token issued for `api.example.com` must NOT be accepted by `admin.example.com`.
 
 ---
 
@@ -85,6 +119,13 @@ Access tokens are short-lived (minutes) so a stolen token is useful for a short 
 // 06-http-auth-middleware.js — run: node 06-http-auth-middleware.js
 ```
 
+#### Gotchas / Edge Cases
+
+- Refresh token rotation turns a **stateless** system into a **stateful** one — the server must track valid refresh tokens in DB/Redis to support revocation.
+- A stolen refresh token is dangerous because it can be exchanged for new access tokens indefinitely. Rotation limits the blast radius to a single use.
+- Replay detection: if an old (already-rotated) refresh token shows up, revoke the entire session — that signals theft.
+- Refresh tokens must be stored in **HttpOnly cookies** or secure storage, never in `localStorage` or exposed to JS.
+
 ---
 
 ## 10.7 Password Security: Hashing, Salting, Timing Attacks
@@ -98,6 +139,13 @@ Never store passwords — store a **hash** with a **salt**. Hashing is one-way (
 ```js
 // 07-password-hashing.js — run: node 07-password-hashing.js
 ```
+
+#### Gotchas / Edge Cases
+
+- Never store plaintext passwords. Ever. Hash them with bcrypt, argon2, or scrypt — not SHA-256/MD5 (too fast to brute-force).
+- A **salt** must be unique per user and random. Reusing salts or using a static salt defeats rainbow-table defense.
+- Timing attacks: `===` on hashes short-circuits on the first mismatched byte. Over many requests, an attacker can guess the hash byte-by-byte. Use `crypto.timingSafeEqual` for constant-time comparison.
+- Work factor (`N`, `r`, `p` in scrypt) must be high enough to make hashing slow (100ms+) — that slowness is the security feature.
 
 ---
 
@@ -113,6 +161,13 @@ OAuth 2.0 is an **authorization framework** that lets a third-party app access a
 // 08-oauth-pkce.js — run: node 08-oauth-pkce.js
 ```
 
+#### Gotchas / Edge Cases
+
+- The **authorization code** is single-use. If intercepted, it is useless without the `code_verifier`. This is why PKCE protects public clients (mobile/SPAs) that can't keep a `client_secret`.
+- The `code_challenge` is sent in the authorize URL (visible in logs, browser history). Only the `code_verifier` is secret — it never leaves the client.
+- `redirect_uri` in the token request must **exactly match** the one registered. Mismatches are a common OAuth misconfiguration.
+- Implicit flow (token returned directly from `/authorize`) is **deprecated** — always use authorization code + PKCE for new code.
+
 ---
 
 ## 10.9 WebSocket Auth
@@ -126,6 +181,13 @@ WebSockets are stateful in a different way: the connection is established once v
 ```js
 // 09-websocket-auth.js — run: node 09-websocket-auth.js
 ```
+
+#### Gotchas / Edge Cases
+
+- The browser **cannot** set `Authorization` headers on `new WebSocket(url)`. Auth must happen via query string, cookies, or subprotocol at handshake time.
+- Query string tokens leak into server access logs. Use one-time/short-lived tokens if you must use query strings, or prefer HttpOnly cookies.
+- Mid-session expiry: the server must send an auth-required frame or close with code `4001`/`4401` — the client then re-authenticates a fresh socket.
+- Ping/pong keepalives prevent proxies/NATs from closing idle WebSocket connections.
 
 ---
 
@@ -142,6 +204,14 @@ Where to put the token is a security trade-off, and the interview answer has nua
 // 06-http-auth-middleware.js (refresh flow reference)
 ```
 
+#### Gotchas / Edge Cases
+
+- `localStorage` is **XSS-vulnerable**: any injected script reads your tokens. Never store refresh tokens there.
+- `sessionStorage` is slightly safer (cleared on tab close) but still XSS-vulnerable — any script in the tab can read it.
+- **In-memory** storage is XSS-resistant but lost on reload — requires a silent refresh flow from an HttpOnly cookie.
+- **HttpOnly cookies** are XSS-proof but CSRF-vulnerable unless paired with `SameSite=Strict/Lax` and/or CSRF tokens.
+- The modern stack: access token in memory, refresh token in HttpOnly + Secure + SameSite cookie, interceptor handles 401 → refresh → replay.
+
 ---
 
 ## 10.11 Web Attacks: XSS, CSRF, CORS, CSP & Headers
@@ -155,6 +225,13 @@ Where to put the token is a security trade-off, and the interview answer has nua
 ```js
 // 11-web-attacks.js — run: node 11-web-attacks.js
 ```
+
+#### Gotchas / Edge Cases
+
+- **CORS is a browser enforcement, not a server security wall**. `curl`, scripts, and WebSocket clients are not blocked by CORS — it only stops YOUR page from READING the response.
+- Never use `Access-Control-Allow-Origin: *` with credentials — the browser rejects it. Specify exact origins.
+- `SameSite=Strict` blocks ALL cross-site cookie sending (including legitimate top-level navigations). `SameSite=Lax` allows top-level GET navigations — use Lax unless you need Strict.
+- `Content-Security-Policy` is a powerful XSS defense but easy to misconfigure. Start with `script-src 'self'` and add exceptions only as needed.
 
 ---
 

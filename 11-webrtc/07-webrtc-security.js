@@ -39,18 +39,12 @@ console.log("A TURN relay that forwards this packet sees:", JSON.stringify(encry
 // It can forward bytes, count packets, and time them — but never decrypt them.
 console.log("relay sees:", JSON.stringify(encrypted.toString("latin1").slice(0, 12)) + "... (encrypted bytes)");
 
-// ---- Threat model table ----
-const threats = [
-  ["Signaling MITM (rogue server)", "Injects fake SDP / swaps fingerprints", "Authenticated signaling (token-gated WS, TLS, verify remote SDP fingerprints)"],
-  ["Stolen signaling token (module 10!)", "Attacker joins the room, gets SDP/ICE", "Short-lived tokens, one-time use, room authz, HTTPS/secure-context rule"],
-  ["Eavesdropper on the path", "Sees encrypted packets + metadata only", "DTLS-SRTP — nothing else needed"],
-  ["TURN relay operator", "Can't decrypt; can analyze metadata (who/when/size)", "Run your own TURN; use TURN only when STUN fails"],
-  ["Malicious page calling getUserMedia", "Camera/mic theft", "Secure context + explicit user permission prompt (browser-enforced)"],
-];
-for (const [attack, effect, defense] of threats) {
-  console.log(`  ${attack.padEnd(34)} ${effect}`);
-  console.log(`  defense: ${defense}`);
-}
+// ---- Threat model (see webrtc.md 11.8 for full prose) ----
+//   Signaling MITM:            Injects fake SDP / swaps fingerprints → Authenticated signaling
+//   Stolen signaling token:    Attacker joins the room, gets SDP/ICE → Short-lived tokens, one-time use
+//   Eavesdropper on the path:  Sees encrypted packets + metadata only → DTLS-SRTP — nothing else needed
+//   TURN relay operator:       Can't decrypt; can analyze metadata → Run your own TURN; use only when STUN fails
+//   Malicious page getUserMedia: Camera/mic theft → Secure context + explicit user permission prompt
 
 // --- Interview one-liners ---
 // DTLS: like TLS but over UDP — used for the RTP/SCTP crypto handshake.
