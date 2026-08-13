@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>WebRTC Peer Demo — Module 11</title>
+<style>
+  body { font-family: -apple-system, sans-serif; margin: 24px; background: #0f1117; color: #e6e6e6; }
+  h1 { font-size: 18px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 12px 0; }
+  video { width: 100%; background: #000; border-radius: 8px; min-height: 140px; }
+  .states { font-family: monospace; font-size: 12px; color: #7ee787; margin-bottom: 8px; }
+  #chat { height: 140px; overflow-y: auto; border: 1px solid #333; border-radius: 8px; padding: 8px; font-size: 13px; margin-top: 8px; }
+  input, button { padding: 6px 10px; border-radius: 6px; border: 1px solid #333; background: #1c1f27; color: #e6e6e6; }
+  button { cursor: pointer; }
+  .badge { color: #79c0ff; }
+</style>
+</head>
+<body>
+<h1>WebRTC P2P Demo <span class="badge">(local camera + chat — no server media)</span></h1>
+<p>Instructions: start the signaling server (<code>node 02-signaling-server.js</code>), then open this file in <b>two tabs</b> with the same room: <code>?room=test</code> — or just open it twice, it defaults to room "default".</p>
+
+<div class="states" id="states">connecting to signaling server...</div>
+<div class="grid">
+  <div><div style="font-size:12px;color:#999">local (you)</div><video id="local" autoplay playsinline muted></video></div>
+  <div><div style="font-size:12px;color:#999">remote (peer)</div><video id="remote" autoplay playsinline></video></div>
+</div>
+<button id="cam" disabled>Start camera</button>
+<button id="share" disabled>Share screen</button>
+<span id="dcState" class="badge"></span>
+<div id="chat"></div>
+<p style="font-size:12px;color:#888">Chat flows over an RTCDataChannel (P2P). Camera/screen flow over SRTP (P2P). The Node server only relayed SDP + ICE candidates.</p>
+
+<script>
+const room = new URL(location.href).searchParams.get("room") || "default";
+const $ = (id) => document.getElementById(id);
+
+// ---------------- signaling over WebSocket (module 10's authenticated server) ----------------
+const ws = new WebSocket(`ws://localhost:3000/?room=${room}&token=webrtc-demo-token`);
+const sendSignaling = (msg) => ws.readyState === WebSocket.OPEN && ws.send(JSON.stringify(msg));
+
+const pc = new RTCPeerConnection({
+  iceServers: [
+    { urls: "stun:stun.l.google.com:19302" }, // STUN only — works at home, fails in symmetric-NAT networks (then you need TURN)
+  ],
+});
+
+const log = (...args) => {
+  $("states").textContent = args.join("  ");
+  console.log("[webrtc]", ...args);
+};
+
+// ---------------- state observers ----------------
+pc.onconnectionstatechange = () => log(`connection: ${pc.connectionState}  ice: ${pc.iceConnectionState}  signaling: ${pc.signalingState}`);
+pc.oniceconnectionstatechange = () => log(`connection: ${pc.connectionState}  ice: ${pc.iceConnectionState}`);
+
+// ---------------- ICE candidates: trickle to the other peer ----------------
+pc.onicecandidate = (e) => e.candidate && sendSignaling({ type: "ice", candidate: e.candidate });
+
+// ---------------- DataChannel (11.6): reliable + ordered chat ----------------
+const dc = pc.createDataChannel("chat", { reliable: true });
+dc.onopen = () => { $("dcState").textContent = `DataChannel: ${dc.readyState} (P2P)`; };
+dc.onclose = () => { $("dcState").textContent = "DataChannel: closed"; };
+dc.onmessage = (e) => { const d = document.createElement("div"); d.textContent = "peer: " + e.data; $("chat").appendChild(d); };
+dc.onerror = (e) => console.warn("dc error", e);
+
+// ---------------- remote media (11.5) ----------------
+pc.ontrack = (e) => { $("remote").srcObject = e.streams[0]; };
+
+// ---------------- camera / screen ----------------
+const addStream = async (stream) => {
+  stream.getTracks().forEach((t) => pc.addTrack(t, stream)); // triggers renegotiationneeded
+  $("local").srcObject = stream;
+};
+$("cam").onclick = async () => {
+  try { await addStream(await navigator.mediaDevices.getUserMedia({ audio: true, video: true })); }
+  catch (err) { console.warn("camera denied:", err); }
+};
+$("share").onclick = async () => {
+  try { await addStream(await navigator.mediaDevices.getDisplayMedia({ video: true })); }
+  catch (err) { console.warn("share cancelled:", err); }
+};
+
+// ---------------- negotiation: perfect-negotiation-lite ----------------
+let polite = true;          // second tab is the "answerer" by default
+let makingOffer = false;
+
+const CHAT_INPUT = document.createElement("input");
+CHAT_INPUT.placeholder = "type a message...";
+CHAT_INPUT.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && CHAT_INPUT.value.trim() && dc.readyState === "open") {
+    dc.send(CHAT_INPUT.value.trim());
+    const d = document.createElement("div");
+    d.textContent = "me: " + CHAT_INPUT.value;
+    $("chat").appendChild(d);
+    CHAT_INPUT.value = "";
+  }
+});
+$("chat").before(CHAT_INPUT);
+
+pc.onnegotiationneeded = async () => {
+  try {
+    makingOffer = true;
+    log("creating offer...");
+    await pc.setLocalDescription();
+    sendSignaling({ type: "offer", sdp: pc.localDescription });
+  } catch (err) {
+    console.error("negotiation failed", err);
+  } finally {
+    makingOffer = false;
+  }
+};
+
+ws.onmessage = async (e) => {
+  const msg = JSON.parse(e.data);
+
+  if (msg.type === "peer-joined") {
+    polite = false; // someone else is already there — we answer instead of offer
+    log("peer joined — I will be the impolite (offerer)");
+    $("cam").disabled = $("share").disabled = false;
+    // impolite side triggers negotiation on demand (e.g. on camera start);
+    // for the demo, start an offer-only if the room mate asks. Simplify: do nothing until a button is pressed.
+    return;
+  }
+
+  if (msg.type === "ice") {
+    try { await pc.addIceCandidate(msg.candidate); } catch (err) { console.warn("ice failed", err); }
+    return;
+  }
+
+  const collision = msg.type === "offer" && (makingOffer || pc.signalingState !== "stable");
+  if (collision) { await Promise.all([pc.setLocalDescription({ type: "rollback" }), pc.setRemoteDescription(msg.sdp)]); }
+  else { await pc.setRemoteDescription(msg.sdp); }
+
+  if (msg.type === "offer") {
+    log("got offer — answering");
+    await pc.setLocalDescription();
+    sendSignaling({ type: "answer", sdp: pc.localDescription });
+  }
+};
+</script>
+</body>
+</html>
