@@ -53,6 +53,13 @@ end
 
 **Key takeaway:** Async is not parallelism. It's cooperative multitasking via the event loop.
 
+### Gotchas / Edge Cases
+
+- `setTimeout(fn, 0)` is **not immediate** — it still waits for the current task (and microtasks) to finish; output order `A → C → B` isn't an exception, it's the rule.
+- A long synchronous block **starves everything**: timers and I/O callbacks scheduled *during* the block fire only after it ends — the `while` freeze delays more than just its own logs.
+- Async doesn't run on a second thread — a heavy async callback still blocks the single thread.
+- Don't measure with `setTimeout` drift: a 100ms timer fires ~100ms *after the stack empties*, not at 100ms of wall time.
+
 ---
 
 ## 4.2 Event Loop
@@ -146,6 +153,14 @@ Promise.resolve().then(() => console.log("promise 2"));
 // All microtasks first, then macrotasks one at a time
 ```
 
+### Gotchas / Edge Cases
+
+- **Microtask starvation**: a `.then` that keeps queueing microtasks forever (recursive `queueMicrotask`) drains before *any* macrotask — timers and I/O never get a turn, and the page freezes. Microtasks are "do all"; macrotasks are "do one".
+- `setTimeout(..., 0)` is clamped to ~1ms after nesting (and 4ms in old browsers) — don't rely on exact 0ms timing.
+- `requestAnimationFrame` isn't in the timer queue: it runs once per frame before paint, so long rAF work delays frames.
+- DOM events (`click`, `scroll`) are macrotasks — a promise resolution can preempt a click handler queued in the same tick.
+- The order `4 → 2 → 3 → 1` breaks nothing but intuition when promises are involved — always trace microtasks first.
+
 ---
 
 ## 4.3 Callbacks
@@ -217,6 +232,14 @@ console.log("2: after readFile");
 // Output: 1 → 2 → 3
 // The callback runs after the file I/O, not inline
 ```
+
+### Gotchas / Edge Cases
+
+- **Error-first is a convention, not enforcement** — a callback that forgets `if (err)` lets failures proceed silently. Always check the first argument.
+- **Zalgo**: if a function sometimes calls its callback synchronously (cached result) and sometimes asynchronously (network), callers can't rely on ordering — always invoke callbacks *asynchronously* (or always sync) so behavior is consistent.
+- Trust problems: nothing guarantees a callback runs **exactly once** — third-party code can call it twice or never. Promises exist partly to fix this.
+- Inside a plain callback function, `this` is **not** the surrounding object — capture it in a variable or use an arrow function (see module 03).
+- Deep nesting makes per-level error handling miserable — the pyramid in this section is why Promises were created.
 
 ---
 
@@ -386,6 +409,15 @@ Promise.any([
 // Output: true 2
 ```
 
+### Gotchas / Edge Cases
+
+- The executor runs **synchronously** when `new Promise(...)` is created — only the `.then` callbacks are async. `console.log` inside the executor runs before the code after it.
+- A promise can only settle **once** — a second `resolve`/`reject` call is silently ignored (the first wins).
+- `Promise.all` rejects as soon as *one* input rejects — but the **others keep running** (their results/errors are swallowed). Don't assume a rejected `all` cancels anything.
+- **Unhandled rejections**: a rejected promise with no `.catch` triggers `unhandledRejection` globally and crashes Node (exit code 1) — the "floating promise" mistake in this section is a production bug.
+- `.catch` only catches errors from `.then` calls *above* it in the chain — putting it on the wrong link misses errors.
+- Don't wrap already-promising code in `new Promise(...)` (the anti-pattern in the section) — just chain the promise you already have.
+
 ---
 
 ## 4.5 async/await
@@ -488,6 +520,14 @@ async function risky() {
 
 risky();
 ```
+
+### Gotchas / Edge Cases
+
+- **`await` inside `forEach` doesn't pause the loop** — callbacks are fired without awaiting, so all promises start at once. Use `for...of` + `await` for sequential, or `Promise.all` for parallel.
+- Missing `await` is the #1 bug: `const data = fetch("...")` gives a `Response`-promise, and `data.json` is `undefined` — comparisons like `data === value` are always false for promises.
+- An `async` function's `try/catch` only catches **awaited** errors — a promise started without `await` rejects outside the `try` (unhandled rejection).
+- Sequential awaits of *independent* calls are a silent 2× latency (see the 4-second example) — `Promise.all` is not an optimization, it's the default expectation.
+- Top-level `await` only works in **ES modules** — a classic `.js` script throws `SyntaxError`; hoist it into an async IIFE there.
 
 ---
 
@@ -620,6 +660,15 @@ fetch("https://httpbin.org/delay/10", { signal: controller.signal })
   .catch(err => console.log(err.name)); // "AbortError"
 controller.abort();
 ```
+
+### Gotchas / Edge Cases
+
+- `fetch` resolves on **404/500** — a missing `response.ok` check lets error payloads pass as success (this section's second error-handling block is the canonical fix).
+- A `Response` body is **single-use**: calling `response.json()` twice throws "body already used" — clone with `response.clone()` if you need the body twice.
+- `response.json()` itself can throw (invalid JSON) — it's a normal rejection your `try/catch` must cover alongside the network error.
+- **CORS** failures surface as `response.type === "opaque"` with `status: 0` — `response.ok`, `status`, and `headers` are all useless there, and you can't read the body.
+- `AbortController` also works with non-fetch things — aborting after completion is a harmless no-op, but forgetting to abort removes the housekeeping of "silent" requests (timeouts, cancellation).
+- `fetch` doesn't auto-send cookies cross-origin — credentials are `"same-origin"` by default; API calls need `credentials: "include"` explicitly.
 
 ---
 
@@ -880,6 +929,24 @@ obj3.y = 6; // Different hidden class (added property after creation) → slower
 
 **Key takeaway:** Write consistent, predictable code. Same types, same object shapes. The engine rewards consistency with speed.
 
+### Gotchas / Edge Cases
+
+- **Deoptimization is contagious**: once TurboFan bails out on `add(1, "hello")`, the *whole function* drops to interpreted mode — one polymorphic call site makes the common path slow.
+- Object shape matters: adding properties **after** creation (`obj3.y = ...`) changes the hidden class and hurts inline caching — create objects with all keys upfront.
+- `delete` of properties also changes hidden classes (dictionary mode) — hot paths should avoid deleting object keys.
+- Not all "slow" code is visible: monomorphic call sites (one type) inline-cache well; spreading varied shapes through libraries makes them deopt.
+- V8's memory: memory leaks show up as **old-generation** growth — generational GC means short-lived garbage is cheap, long-lived references are expensive to collect.
+
 ---
 
 *Last updated: 2026*
+
+---
+
+## Question Bank
+
+Say each answer out loud, then verify with the code file:
+
+```
+node 08-interview-questions.js
+```
