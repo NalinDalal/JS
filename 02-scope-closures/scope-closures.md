@@ -59,6 +59,14 @@ console.log(a); // 1 — block-scoped let doesn't leak out
 
 The output proves JS walks the scope chain from innermost to outermost, and `let`/`const` respect block boundaries.
 
+### Gotchas / Edge Cases
+
+- Scope is decided **at parse time**, not call time — calling `inner` from anywhere doesn't change what it can see.
+- `var` ignores block boundaries: `if (true) { var y = 1; }` leaks `y` to the function/global scope.
+- **Shadowing**: an inner declaration with the same name hides the outer one — the lookup stops at the first match. There is no way to "reach past" a shadowing binding.
+- A `function`-declaration's scope chain skips **shadowed** bindings in between — it can only see the nearest enclosing declaration then the next.
+- Name resolution happens per-scope: `var` in a `for` loop body is the *same* binding for every iteration (see 2.3).
+
 ---
 
 ## 2.2 Hoisting
@@ -107,6 +115,14 @@ class MyClass {}
 ```
 
 **Key insight**: Hoisting moves declarations, not initializations. `var` declarations are initialized to `undefined`; `let`/`const` are left uninitialized in the TDZ.
+
+### Gotchas / Edge Cases
+
+- `var` hoists to the **top of its function**, not its block — a `var` inside `if` is visible after the `if` (as `undefined`, not an error).
+- In the TDZ, even `typeof x` throws `ReferenceError` — unlike a truly undeclared name, which yields `"undefined"`.
+- Function **declarations** hoist completely; function **expressions** and arrow functions don't — calling the latter before their line throws `TypeError`.
+- `class` declarations are not hoisted — `new MyClass()` before the `class` line throws `ReferenceError`.
+- Assigning before a `var` declaration is legal (`a = 1; var a;`) — the assignment just happens on the hoisted `undefined` binding.
 
 ---
 
@@ -181,6 +197,14 @@ function createHeavy() {
 
 **Pitfall**: In `var` loops, all callbacks share the same variable. Use `let` or an IIFE to capture each iteration's value.
 
+### Gotchas / Edge Cases
+
+- The closure captures the **variable, not the value** — if the outer variable changes later, the inner function sees the change (`fn()` printed `10` even after the global `x` was set).
+- **Memory**: every closure keeps its entire outer environment alive. A closure over a huge `largeArray` prevents GC for the app's lifetime — release closures when done, or hoist big data out.
+- Each `setTimeout`/event callback in a `var` loop shares one binding (`3, 3, 3`); `let` creates a fresh binding per iteration (`0, 1, 2`).
+- Closures capture **environments**, not scopes: two calls to the same outer function produce two independent environments.
+- Engines keep alive only what the closure *might* use — but debugger/`eval` inside the closure defeats that optimization (everything in scope stays).
+
 ---
 
 ## 2.4 IIFE (Immediately Invoked Function Expressions)
@@ -232,6 +256,13 @@ for (var i = 0; i < 3; i++) {
 }
 // Output: 0, 1, 2
 ```
+
+### Gotchas / Edge Cases
+
+- A function **declaration** can't be an IIFE: `function(){}()` at statement position is a `SyntaxError` — it must be an *expression* (wrapped in parens, or prefixed with `void`, `!`, `+`).
+- **ASI hazard**: if the previous statement lacks a `;`, an IIFE starting a line can be parsed as a *function call* of the last expression (`foo()(function(){})()` breaks). Prefix with `;` when chaining IIFEs.
+- Arrow IIFEs need the parentheses **around the whole arrow**: `(() => {...})()`.
+- The outer parens do nothing else — no implicit `this` change, no extra scope (the IIFE body scope is created by the function itself).
 
 ---
 
@@ -301,6 +332,14 @@ console.log(UserModule.getName()); // "Bob"
 ```
 
 Before ES6 modules, this was the standard way to create encapsulated, reusable code in JavaScript.
+
+### Gotchas / Edge Cases
+
+- The pattern creates a **singleton** — one instance for the lifetime of the script. For multiple instances, use a factory function instead.
+- Breaking encapsulation: if the returned methods reference `module.result` or `this.something` instead of the closure variables, the "private" state leaks.
+- It's privacy **by convention**, not by enforcement — DevTools/`eval` can still reach in. Truly hard privacy needs `#` class fields or `WeakMap`-based closets.
+- Functions that return `{ add, getResult }` expose method *references* — callers can re-bind them with `.call(otherObj)`, which only matters if methods use `this`.
+- No tree-shaking: the whole IIFE runs at load — ES modules can drop unused exports.
 
 ---
 
@@ -435,3 +474,13 @@ console.log(result); // [2, 4, 6]
 - [YDKJS: Scope & Closures, Chapter 2: Lexical Scope](https://github.com/getify/You-Dont-Know-JS/blob/2nd-ed/scope-closures/README.md)
 - [YDKJS: Scope & Closures, Chapter 4: Hoisting](https://github.com/getify/You-Dont-Know-JS/blob/2nd-ed/scope-closures/ch4.md)
 - [YDKJS: Scope & Closures, Chapter 5: Closures](https://github.com/getify/You-Dont-Know-JS/blob/2nd-ed/scope-closures/ch5.md)
+
+---
+
+## Question Bank
+
+Say each answer out loud, then verify with the code file:
+
+```
+node 06-interview-questions.js
+```
