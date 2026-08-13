@@ -35,6 +35,14 @@ function foo() { console.log("foo"); }
 const bar = function() { console.log("bar"); };
 ```
 
+### Gotchas / Edge Cases
+
+- `var` is **function-scoped**, not block-scoped — `for (var i = 0; ...)` leaks `i` into the enclosing function. `let/const` fix this.
+- `const` prevents **reassignment**, not mutation — `const obj = {}` can still have properties added.
+- The **TDZ** applies to `let/const`: even `typeof x` before the declaration throws `ReferenceError` (unlike undeclared variables, which return `"undefined"`).
+- Redeclaring a `let`/`const` in the same scope is a `SyntaxError`; redeclaring a `var` silently re-declares.
+- Calling a `const` arrow/function expression before its line throws `TypeError` (it's `undefined` at that point — not hoisted).
+
 ---
 
 ## 1.2 Types Overview (8 Types)
@@ -62,6 +70,14 @@ typeof function(){}     // "function" (special case)
 "hello".length          // 5 (String wrapper created temporarily)
 (42).toString()         // "42" (Number wrapper)
 ```
+
+### Gotchas / Edge Cases
+
+- `typeof null === "object"` — a legacy bug from JS 1.0 that can never be fixed.
+- Arrays and `null` both report `"object"` — always use `Array.isArray(x)` to test arrays.
+- `typeof function(){}` returns `"function"`, but functions are still objects (they have properties like `.length`).
+- The wrapper objects are **temporary**: `"hello".prop = 1` silently does nothing (and throws in strict mode).
+- `typeof undeclaredVar` returns `"undefined"` instead of throwing — convenient, but it can hide typos.
 
 ---
 
@@ -103,6 +119,14 @@ Boolean(0)        // false
 !!"hello"         // true
 ```
 
+### Gotchas / Edge Cases
+
+- `+` concatenates if **either** side is a string (`"5" + 3` → `"53"`), but `- * /` always coerce to number (`"5" - 3` → `2`).
+- Empty objects/arrays coerce via `toString()`: `[] + []` → `""`, `[] + {}` → `"[object Object]"` — the classic interview trap.
+- `null == undefined` is `true` — the *only* loose-equality case that behaves as expected.
+- `==` coerces both sides (`0 == false`, `"5" == 5`, `[] == ""` are all `true`) — prefer `===`.
+- `Object.is` differs from `===` in exactly two cases: `NaN` and `±0`.
+
 ---
 
 ## 1.4 Special Values
@@ -126,6 +150,14 @@ Object.is(+0, -0) // false
 1/+0   // Infinity
 1/-0   // -Infinity
 ```
+
+### Gotchas / Edge Cases
+
+- `NaN` is the only value that is **not equal to itself** — always check with `Number.isNaN(x)`, never `x === NaN`.
+- The global `isNaN("foo")` coerces first and returns `true`; `Number.isNaN("foo")` returns `false` — another reason to use the `Number.*` version.
+- `+0 === -0` is `true`, and `JSON.stringify(-0)` serializes to `"0"` — they only differ via `Object.is` or division (`1/-0` → `-Infinity`).
+- `Infinity - Infinity` → `NaN`, not `0`.
+- `Number.isFinite("42")` is `false` (no coercion), while global `isFinite("42")` is `true` — pick the non-coercing one for validation.
 
 ---
 
@@ -154,6 +186,14 @@ Math.random()      // 0-1
 Math.max(1,5,3)    // 5
 Math.hypot(3,4)    // 5
 ```
+
+### Gotchas / Edge Cases
+
+- `0.1 + 0.2 !== 0.3` — IEEE 754 binary representation can't store these exactly. Compare with rounding or an epsilon, never `===`.
+- Server-side IDs past `Number.MAX_SAFE_INTEGER` (e.g. large `id` fields in JSON) silently lose precision — keep them as strings.
+- `BigInt` **cannot mix** with `Number`: `1n + 1` throws `TypeError`; regular arithmetic silently loses precision above the safe range.
+- `Math.max()` / `Math.min()` with **no arguments** return `-Infinity` / `+Infinity` — surprising when spreading an empty array.
+- `parseInt("10px")` → `10` but `Number("10px")` → `NaN`; `parseInt("0x10")` → `16` (hex); always pass the radix: `parseInt(s, 10)`.
 
 ---
 
@@ -184,6 +224,14 @@ const html = `
 "  hi  ".trim()              // "hi"
 ```
 
+### Gotchas / Edge Cases
+
+- Strings are **immutable** — every method returns a *new* string; the original never changes.
+- `.length` counts UTF-16 **code units**, not characters: `"😀".length` is `2`. Use `[...str]` or `Array.from(str)` to iterate by code point.
+- `"😀".split("")` splits into broken halves — same surrogate-pair problem everywhere index-based APIs are used.
+- Comparison uses UTF-16 code-unit order, so `"ä" > "z"` can surprise you against locale expectations (`localeCompare` for humans).
+- Tagged templates exist — the tag function receives raw strings plus evaluated values; handy for escaping/l10n.
+
 ---
 
 ## 1.7 Operators & Precedence
@@ -211,6 +259,14 @@ user.settings?.theme;      // undefined (no error)
 const { x = 10, y = 20 } = { x: 5 };
 // x=5, y=20
 ```
+
+### Gotchas / Edge Cases
+
+- `??` **cannot be mixed** with `||` / `&&` without parentheses — `a ?? b || c` is a `SyntaxError`.
+- `||` treats `0`, `""`, `false` as falsy and replaces them; use `??` when only `null`/`undefined` should trigger the fallback (e.g. `score ?? 0` keeps a `0` score).
+- Logical operators return the **operand value**, not a boolean — `0 || "x"` gives the string, and `a && b` is only `true`-ish when both are truthy (use in conditions, but don't assign from it casually).
+- Optional chaining guards `null`/`undefined` **values** only — `obj?.prop` on an undeclared *identifier* still throws.
+- Bitwise operators coerce to **32-bit integers**: `Math.pow(2, 31) | 0` → `-2147483648`.
 
 ---
 
@@ -249,6 +305,15 @@ class ValidationError extends Error {
 }
 ```
 
+### Gotchas / Edge Cases
+
+- `switch` compares with **strict `===`** — no coercion: `case 5` never matches `"5"`.
+- Cases **fall through** without `break` — forgetting it runs the next case (sometimes intentional, usually a bug).
+- A `return` inside `finally` **overrides** the function's earlier `return`/`throw` — never return from `finally` unless you mean it.
+- `throw` can throw any value (strings, numbers), but only `Error` instances carry a useful `stack`.
+- Catch-and-do-nothing silently swallows errors — rethrow (`throw e`) or log when you can't handle it.
+- `catch` binding is optional in modern JS: `catch { ... }` (no parameter) for cleanup-only handlers.
+
 ---
 
 ## Quick Reference Card
@@ -280,3 +345,10 @@ class ValidationError extends Error {
 ## Sources
 - MDN: [Grammar and types](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types), [Numbers and strings](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Numbers_and_strings), [Expressions and operators](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_operators), [Control flow](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Control_flow_and_error_handling)
 - YDKJS: Scope & Closures Ch1, Types & Grammar Ch1-4
+---
+
+## Question Bank
+
+Say each answer out loud, then verify with the code file:
+
+`node 06-interview-questions.js`
