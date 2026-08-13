@@ -43,7 +43,7 @@ Every module ships TWO interview artifacts: a code-style `*-interview-*.js` (run
 | **09-modern-patterns** | Destructuring, optional chaining, nullish coalescing, spread, regex, dates, debounce/throttle | [modern-syntax.md](09-modern-patterns/modern-syntax.md) (1272 lines) + [js-lectures-extras.md](09-modern-patterns/js-lectures-extras.md) (448 lines) | Ongoing |
 | **10-auth-security** | JWT (structure/signing/verification), sessions, refresh rotation, password hashing, OAuth2+PKCE, WebSocket auth, XSS/CSRF/CORS, token storage | [auth-security.md](10-auth-security/auth-security.md) + 12 code files (zero deps, Node built-ins) | Ongoing |
 | **11-webrtc** | P2P media/data, signaling, SDP/ICE, STUN/TURN, DataChannels, DTLS-SRTP security | [webrtc.md](11-webrtc/webrtc.md) + 8 code files (zero deps, Node built-ins) | Ongoing |
-| **12-websockets** | WebSocket protocol, rooms, broadcasting, heartbeat, auth patterns, reconnection, scaling | [websockets.md](12-websockets/websockets.md) (146 lines) + 7 code files (zero deps, Node built-ins) | Ongoing |
+| **12-websockets** | WebSocket protocol, rooms, broadcasting, heartbeat, auth patterns, reconnection, scaling | [websockets.md](12-websockets/websockets.md) (16 sections) + 9 code files (zero deps + ws library) | Ongoing |
 
 ---
 
@@ -146,4 +146,6 @@ Every module ships TWO interview artifacts: a code-style `*-interview-*.js` (run
 - [05-client.js](12-websockets/05-client.js) — reconnecting client with exponential backoff + jitter, message queue
 - [06-scaling.js](12-websockets/06-scaling.js) — sticky sessions, pub/sub broker simulation, multi-process fan-out
 - [07-interview-websockets.js](12-websockets/07-interview-websockets.js) — 14 Q&A to say out loud
+- [08-browser-client.js](12-websockets/08-browser-client.js) — browser WebSocket API: readyState, text/binary, Blob/ArrayBuffer, event handling
+- [09-ws-library.js](12-websockets/09-ws-library.js) — production `ws` npm package quick-start (server + client + TLS + cleanup)
 

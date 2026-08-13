@@ -124,11 +124,192 @@ A single Node.js process handles ~50K–100K concurrent WebSocket connections on
 
 ---
 
-## 12.9 Interview Questions
+## 12.9 Security, Origin Checking & Rate Limits
 
 ### Explain It
 
-Say these out loud: What is a WebSocket and how does the handshake work? What is the frame format? How do you implement rooms and broadcasting? What is a heartbeat and why do you need it? How do you authenticate a WebSocket connection? How do you handle reconnection on the client? How do you scale WebSocket across multiple processes? When would you use SSE instead of WebSocket? What is the difference between WebSocket and Server-Sent Events? How do you handle binary data over WebSocket?
+WebSocket is **not** protected by CORS. Any page can open `new WebSocket("ws://your-server")` and send messages — the browser does not enforce same-origin policy on the WebSocket protocol itself. You must validate the `Origin` header during the handshake and reject cross-origin upgrades if your app is browser-facing. Additionally: rate-limit messages per connection to prevent floods, cap payload length (`ws` library defaults to 100MB; set `maxPayload` to something sane like 1MB), and validate message schemas server-side. For internal services (server-to-server WS), origin checking is less critical but message authentication (token in first message or subprotocol) is still needed.
+
+### Gotchas / Edge Cases
+
+- `Origin: null` appears when connecting from `file://` or some extensions — decide whether to allow or reject.
+- `Sec-WebSocket-Protocol` is **not** an auth mechanism by itself — it's a capability negotiation header. Pair it with a token or cookie if you need real auth.
+- A malicious browser tab can open hundreds of WebSocket connections to your server (connection flooding). Rate-limit at the HTTP upgrade endpoint too.
+- Message size: a single `ws.send(jsonString)` can be megabytes. Always validate and reject oversized payloads before processing.
+
+### Prove It
+
+```js
+// Origin check pattern (add to 01-websocket-protocol.js):
+const allowedOrigins = new Set(["https://my-app.com", "https://admin.my-app.com"]);
+const origin = req.headers.origin;
+if (origin && !allowedOrigins.has(origin)) {
+  socket.write("HTTP/1.1 403 Forbidden\r\n\r\n");
+  socket.destroy();
+  return;
+}
+```
+
+```js
+// 04-auth.js — run: node 04-auth.js (shows query/cookie/subprotocol auth)
+```
+
+---
+
+## 12.10 Close Codes & Graceful Shutdown
+
+### Explain It
+
+WebSocket close is a **two-way handshake**: one side sends a close frame (`opcode 0x8` + 2-byte status code + reason), the other replies with its own close frame, then both close the TCP socket. Status codes follow RFC 6455: `1000` normal closure, `1001` going away (server restart), `1006` abnormal closure (no close frame — network drop), `1011` unexpected server error. Application-level codes (`4001` mid-session expiry, `4401` invalid token) are in the 4xxx range. A graceful server shutdown: stop accepting new upgrades, send `1001` to all open sockets, wait for close acks or a timeout, then `server.close()`.
+
+### Gotchas / Edge Cases
+
+- `1006` is never sent on the wire — it's a local-only code meaning "connection lost without close frame."
+- `ws.close()` without arguments sends `1000`. Pass a code and reason: `ws.close(4001, "session expired")`.
+- After calling `ws.close()`, `ws.readyState` transitions to `CLOSING` (2), then `CLOSED` (3) after the ack. Don't reuse a socket after `close()`.
+- During server shutdown, in-flight messages may be lost if you `process.exit()` before the close handshake completes. Drain first.
+
+### Prove It
+
+```js
+// Add graceful shutdown to 01-websocket-protocol.js:
+process.on("SIGINT", () => {
+  console.log("\n[shutdown] sending 1001 to all clients...");
+  for (const [socket] of clients) {
+    if (!socket.destroyed) socket.write(encodeTextFrame("Server going away"));
+    socket.destroy();
+  }
+  server.close(() => process.exit(0));
+});
+```
+
+---
+
+## 12.11 Message Fragmentation & Large Messages
+
+### Explain It
+
+A single WebSocket message can span **multiple frames**. The sender sets `FIN=0` on all frames except the last one (`FIN=1`). The receiver buffers fragments until it sees `FIN=1`, then delivers the complete message to the application. This means a 10MB JSON payload arrives as many small frames — the browser or `ws` library reassembles them for you. Fragmentation is automatic and transparent for most apps, but it matters when you implement your own frame parser or need backpressure. The `ws` library handles it internally; our zero-dep demos assume `FIN=1` (unfragmented) for simplicity.
+
+### Gotchas / Edge Cases
+
+- Don't send messages larger than the receiver's `maxPayload`. The `ws` library defaults to 100MB; our demos use much smaller limits.
+- Fragmented frames must arrive in order. TCP guarantees this, but if you implement your own transport over WebSocket, don't assume it.
+- Binary messages fragment the same way as text — opcode `0x2` for first fragment, `0x0` for continuation.
+- Some old proxies drop connections if frames arrive too slowly. Keep fragment intervals short.
+
+### Prove It
+
+```js
+// Fragmentation is handled by ws library automatically:
+ws.send(veryLargeBuffer); // ws splits into multiple FIN=0 frames internally
+// In zero-dep, you'd need to loop and set FIN=0 on all but the last chunk.
+```
+
+---
+
+## 12.12 Subprotocols & Custom Protocols
+
+### Explain It
+
+The `Sec-WebSocket-Protocol` header lets client and server negotiate an **application-level protocol** on top of WebSocket. The client sends `Sec-WebSocket-Protocol: mqtt, json`; the server picks one and echoes it back in the response. The browser exposes the chosen protocol via `ws.protocol` after `onopen`. Common subprotocols: **MQTT** (IoT messaging), **GraphQL WS** (GraphQL subscriptions), **wamp** (remote procedure calls). In our zero-dep auth demo, `auth` is a custom subprotocol signaling "this connection requires token auth." Subprotocols are negotiated at handshake time — if the server doesn't pick one the client supports, it rejects the upgrade.
+
+### Gotchas / Edge Cases
+
+- The server must pick **exactly one** subprotocol from the client's list, or reject the connection. It cannot say "I support both."
+- Subprotocol order matters: `Sec-WebSocket-Protocol: mqtt, json` means "I prefer mqtt, json is fallback."
+- `ws.protocol` is empty string if no subprotocol was negotiated.
+- Subprotocols are **not** a security boundary. They don't encrypt or authenticate — they just label the message format.
+
+### Prove It
+
+```js
+// Client requests subprotocol:
+const ws = new WebSocket("ws://localhost:3003", ["auth"]);
+ws.addEventListener("open", () => {
+  console.log("negotiated protocol:", ws.protocol); // "auth"
+});
+
+// Server picks (from 04-auth.js):
+const requested = (req.headers["sec-websocket-protocol"] || "").split(",").map(s => s.trim());
+if (requested.includes("auth")) {
+  // echo back: Sec-WebSocket-Protocol: auth
+}
+```
+
+---
+
+## 12.13 Browser Client Patterns
+
+### Explain It
+
+The browser `WebSocket` API is small but has important gotchas. `new WebSocket(url, protocols?)` takes an optional array of subprotocols. The `readyState` enum is `CONNECTING (0)`, `OPEN (1)`, `CLOSING (2)`, `CLOSED (3)` — calling `send()` while `CONNECTING` throws `INVALID_STATE_ERR`. `event.data` is `string` for text frames; set `ws.binaryType = "arraybuffer"` or `"blob"` before `onopen` to control binary frame deserialization. Binary `send()` accepts `Blob`, `ArrayBuffer`, and `ArrayBufferView`. The browser handles pong automatically — you only need to implement ping if you want to detect dead connections from the client side. Connection limits per origin are ~255; reuse a single WebSocket for multiple features rather than opening per-feature sockets.
+
+### Gotchas / Edge Cases
+
+- `ws.send()` throws if `readyState !== OPEN`. Always check before sending, or queue messages.
+- `ws.protocol` is empty unless the server returned `Sec-WebSocket-Protocol` in the handshake.
+- `binaryType` must be set **before** the first `onmessage` fires — set it right after `new WebSocket()`.
+- `onerror` does not give you an `Error` object with a message — it's mostly useful for logging + triggering reconnect.
+- `EventSource` (SSE) auto-reconnects; `WebSocket` does not. Build reconnection logic yourself or use a library.
+- Mixed content: browsers block `ws://` from `https://` pages. Use `wss://` in production.
+
+### Prove It
+
+```js
+// 08-browser-client.js — paste into DevTools console while 01 is running
+```
+
+---
+
+## 12.14 Scaling: Sticky Sessions, Pub/Sub & Managed Services
+
+### Explain It
+
+A single Node.js process handles ~50K–100K concurrent WebSocket connections. Beyond that, you need multiple processes — but WebSocket is stateful (connections are pinned to a specific process). **Sticky sessions** at the load balancer route the same client to the same backend (by IP hash, cookie, or path). When client A on process 1 sends a message to client B on process 2, process 1 must **publish** to a message broker; process 2 **subscribes** and forwards. Redis Pub/Sub is the standard broker. For global scale, managed services like **Cloudflare Durable Objects**, **AWS API Gateway WebSocket**, or **Pusher** abstract the scaling problem. The key invariant: the server must never assume two messages from the same user arrive on the same process.
+
+### Gotchas / Edge Cases
+
+- Sticky sessions break if the backend process crashes — connected clients are orphaned. The client's reconnection logic must handle this.
+- Redis Pub/Sub is fire-and-forget. If process 2 is temporarily down, it misses messages. For durability, use Redis Streams or a proper message queue.
+- `wss.clients.size` in `ws` only counts connections on **that** process — not the whole cluster.
+- Load balancer timeouts must exceed your WebSocket heartbeat interval, or the LB will close idle connections.
+
+### Prove It
+
+```js
+// 06-scaling.js — run: node 06-scaling.js
+```
+
+---
+
+## 12.15 The `ws` Library: Production Quick-Start
+
+### Explain It
+
+The `ws` npm package is the de-facto standard for WebSocket in Node.js. `new WebSocketServer({ port })` creates a server with a `wss.clients` Set of all connections. `ws.send(data)` accepts `string`, `Buffer`, or `TypedArray` and automatically sets the correct opcode. `ws.close(code, reason)` sends the close handshake. The library handles: masked frame encode/decode, ping/pong, fragmentation, `permessage-deflate` compression, and `maxPayload` limits. For TLS, pass an existing `https.Server` to `new WebSocketServer({ server })`. The client API mirrors the browser's `WebSocket` almost exactly.
+
+### Gotchas / Edge Cases
+
+- `wss.clients` is a `Set<WebSocket>`, not a `Map`. You need a separate `Map<ws, userId>` if you want to track who is who.
+- `ws.readyState` transitions: `CONNECTING` → `OPEN` → `CLOSING` → `CLOSED`. After `CLOSING`, the socket is unusable even if `CLOSED` hasn't arrived yet.
+- `ws.send()` after `ws.close()` throws. Track `ws.readyState` or use a flag.
+- `permessage-deflate` is **opt-in** in `ws` v8+ for performance reasons. Enable it if you're sending large text payloads.
+- `WebSocketServer` does not emit `upgrade` — it handles the HTTP upgrade internally. You can't combine it with another HTTP router on the same port without a custom server.
+
+### Prove It
+
+```js
+// 09-ws-library.js — run: node 09-ws-library.js
+```
+
+---
+
+## 12.16 Interview Questions
+
+### Explain It
+
+Say these out loud: What is a WebSocket and how does the handshake work? What is the frame format? How do you implement rooms and broadcasting? What is a heartbeat and why do you need it? How do you authenticate a WebSocket connection? How do you handle reconnection on the client? How do you scale WebSocket across multiple processes? When would you use SSE instead of WebSocket? What is the difference between WebSocket and Server-Sent Events? How do you handle binary data over WebSocket? What are common WebSocket close codes? How does WebSocket security differ from HTTP CORS? What is message fragmentation and when does it matter? How do subprotocols work?
 
 ### Prove It
 
@@ -144,3 +325,5 @@ Say these out loud: What is a WebSocket and how does the handshake work? What is
 - MDN WebSocket API: https://developer.mozilla.org/en-US/docs/Web/API/WebSocket
 - MDN Server-Sent Events: https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events
 - `ws` npm package: https://github.com/websockets/ws
+- Cloudflare Durable Objects: https://developers.cloudflare.com/durable-objects/
+
