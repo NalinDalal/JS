@@ -49,8 +49,8 @@ console.log("header:", JSON.parse(Buffer.from(h, "base64url").toString()));
 console.log("payload:", JSON.parse(Buffer.from(p, "base64url").toString()));
 
 // Anyone can decode — the payload is NOT encrypted
-console.log("\nKey fact: JWT is signed, not encrypted.");
-console.log("Payload is base64url — decode it, read it, modify it (then the signature fails).");
+// Key fact: JWT is signed, not encrypted.
+// Payload is base64url — decode it, read it, modify it (then the signature fails).
 
 console.log("\n--- Tamper test ---");
 const tamperedPayload = encodeSegment({ ...payload, name: "Mallory" });

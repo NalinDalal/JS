@@ -65,4 +65,4 @@ const compare = {
 
 for (const [k, v] of Object.entries(compare)) console.log(`${k}: ${v}`);
 
-console.log("\nRule of thumb: sessions = revocable web app; JWT = stateless/API/microservices");
+// Rule of thumb: sessions = revocable web app; JWT = stateless/API/microservices
