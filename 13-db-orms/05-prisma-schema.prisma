@@ -1,0 +1,65 @@
+// Module 13 — 13.8/13.10 Prisma Schema + Migrations
+// Declares models, enums, one-to-many + many-to-many relations.
+//
+// Setup:
+//   npm i prisma @prisma/client
+//   npx prisma migrate dev --name init   (creates the DB + generated client)
+//   node 06-prisma-client.js
+
+// SQLite is used here so the demo runs with zero external setup.
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+enum Role {
+  USER
+  ADMIN
+  MODERATOR
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  name      String
+  role      Role     @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // One-to-many: a User has many Posts (child side holds authorId)
+  posts     Post[]
+  // Many-to-many: a User follows many Posts; join rows are stored in Follow
+  followed  Follow[]
+}
+
+model Post {
+  id        Int      @id @default(autoincrement())
+  title     String
+  body      String?
+  published Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  // Relation owner side: stores the foreign key authorId
+  author   User @relation(fields: [authorId], references: [id])
+  authorId Int
+
+  // Explicit many-to-many join model with extra data (likedAt)
+  likes Follow[]
+
+  @@index([authorId]) // speeds up "posts by author" queries
+}
+
+// Explicit join model for User<->Post many-to-many (has extra data)
+model Follow {
+  user   User @relation(fields: [userId], references: [id])
+  userId Int
+  post   Post @relation(fields: [postId], references: [id])
+  postId Int
+  likedAt DateTime @default(now())
+
+  @@id([userId, postId]) // composite primary key
+}

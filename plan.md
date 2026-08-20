@@ -1,6 +1,6 @@
 # JavaScript Revision Plan
 
-**Goal:** Master 15 core JS concepts + Web APIs for interviews AND build real confidence through code.
+**Goal:** Master 15 core JS concepts + Web APIs for interviews AND build real confidence through code. Then extend into the full backend stack: DB/ORM, TypeScript, Node internals, testing, networking protocols, caching & queues.
 
 **Resources:**
 - **Namaste JavaScript** (Akshay Saini) - Video explanations
@@ -41,7 +41,7 @@
 
 ---
 
-## 14-Week Schedule
+## 20-Week Schedule
 
 ### Week 1: var/let/const
 
@@ -979,6 +979,604 @@ finance-tracker/
 
 ---
 
+## Backend Extension (Weeks 15-20)
+
+### Week 15: DB + ORMs (Mongoose + Prisma)
+
+**Interview prep:**
+- Know when SQL vs NoSQL: relational models (joins, strict schema, transactions) vs documents (flexible schema, denormalized, horizontal scale)
+- Mongoose: Schema → Model, required/unique/index validators, `methods`/`statics`, `virtuals`, middleware hooks (pre/post `save`), `populate()` for `$ref` relations
+- Prisma: `schema.prisma` (models, enums, `@relation`) → `prisma migrate` → type-safe Prisma Client; compare against Mongoose: type safety, migrations, multi-DB support
+- Write explanation: "Mongoose is a document ODM for MongoDB. Prisma is a type-safe ORM for SQL (and MongoDB) generated from a schema."
+
+**Code to run:**
+```js
+// mongoose.js - run with: node mongoose.js (needs local MongoDB)
+const mongoose = require('mongoose');
+
+const userSchema = new mongoose.Schema({
+  name: { type: String, required: true, trim: true },
+  email: { type: String, required: true, unique: true },
+  age: { type: Number, min: 0 },
+  createdAt: { type: Date, default: Date.now }
+});
+
+userSchema.methods.profile = function () {
+  return `${this.name} <${this.email}>`;
+};
+
+const User = mongoose.model('User', userSchema);
+
+async function run() {
+  await mongoose.connect('mongodb://127.0.0.1:27017/notes');
+
+  const alice = new User({ name: 'Alice', email: 'alice@dev.com', age: 25 });
+  await alice.save();
+  console.log(alice.profile()); // "Alice <alice@dev.com>"
+
+  const adults = await User.find({ age: { $gte: 18 } }).sort({ name: 1 });
+  await User.updateOne({ email: 'alice@dev.com' }, { $set: { age: 26 } });
+  await User.deleteOne({ email: 'alice@dev.com' });
+
+  await mongoose.disconnect();
+}
+run();
+```
+
+```prisma
+// prisma/schema.prisma - the single source of truth
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  age       Int?
+  posts     Post[]
+  createdAt DateTime @default(now())
+}
+
+model Post {
+  id       String @id @default(cuid())
+  title    String
+  author   User   @relation(fields: [authorId], references: [id])
+  authorId String
+}
+```
+
+```js
+// prisma.js - type-safe queries, no strings to mistype
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
+
+async function run() {
+  await prisma.user.create({
+    data: { name: 'Alice', email: 'alice@dev.com', age: 25 }
+  });
+
+  const users = await prisma.user.findMany({
+    where: { age: { gte: 18 } },
+    orderBy: { name: 'asc' },
+    include: { posts: true } // like Mongoose .populate()
+  });
+
+  await prisma.user.update({
+    where: { email: 'alice@dev.com' },
+    data: { age: 26 }
+  });
+
+  await prisma.user.delete({ where: { email: 'alice@dev.com' } });
+}
+run();
+```
+
+**Build/Project: Notes API (Express + Mongoose)**
+```js
+// notes-api.js - npm i express mongoose
+const express = require('express');
+const mongoose = require('mongoose');
+
+const noteSchema = new mongoose.Schema({
+  title: { type: String, required: true },
+  body: String,
+  tags: [String],
+  createdAt: { type: Date, default: Date.now }
+});
+
+const Note = mongoose.model('Note', noteSchema);
+const app = express();
+app.use(express.json());
+
+app.get('/api/notes', async (req, res) => {
+  res.json(await Note.find().sort({ createdAt: -1 }));
+});
+
+app.post('/api/notes', async (req, res) => {
+  res.status(201).json(await Note.create(req.body));
+});
+
+app.put('/api/notes/:id', async (req, res) => {
+  res.json(await Note.findByIdAndUpdate(req.params.id, req.body, { new: true }));
+});
+
+app.delete('/api/notes/:id', async (req, res) => {
+  await Note.findByIdAndDelete(req.params.id);
+  res.status(204).end();
+});
+
+app.listen(3000, async () => {
+  await mongoose.connect('mongodb://127.0.0.1:27017/notes');
+  console.log('http://localhost:3000');
+});
+```
+
+---
+
+### Week 16: TypeScript
+
+**Interview prep:**
+- TypeScript is **erasable** - it compiles away, no runtime overhead. `strict` mode is the default since TS 5.0
+- **Structural typing**: compatibility is by shape, not name (duck typing). This is the #1 difference from Java/C#
+- `interface` vs `type`: interfaces extend with `extends`, types compose with unions (`|`) and intersections (`&`)
+- Union & literal types, narrowing (`typeof`, `in`, discriminated unions with `kind: 'a' | 'b'`)
+- Generics + utility types: `Partial`, `Pick`, `Omit`, `Record`, `ReturnType` - the interview favorites
+- Write explanation of generics: "A type-level function that takes a type and returns a type"
+
+**Code to run:**
+```ts
+// types.ts - run with: npx tsx types.ts
+interface User {
+  id: number;
+  name: string;
+  email?: string;              // optional
+  roles: ('admin' | 'user')[]; // literal union
+}
+
+type ID = string | number;     // union type
+
+function greet(user: User): string {
+  return `Hello ${user.name}`;
+}
+
+// Generic: type-safe "first element"
+function first<T>(arr: T[]): T | undefined {
+  return arr[0];
+}
+
+const n = first([1, 2, 3]);   // number | undefined
+const s = first(['a', 'b']);  // string | undefined
+
+// Utility types
+type PublicUser = Omit<User, 'email'>; // removes email
+type PartialUser = Partial<User>;      // all fields optional
+type OnlyId = Pick<User, 'id'>;        // { id: number }
+
+// Narrowing - TS figures out the type per branch
+function printId(id: ID): void {
+  if (typeof id === 'string') {
+    console.log(id.toUpperCase());
+  } else {
+    console.log(id.toFixed(2));
+  }
+}
+
+// Discriminated union - 'ok' narrows the type
+type Result<T> =
+  | { ok: true; data: T }
+  | { ok: false; error: string };
+
+function handle<T>(r: Result<T>): T {
+  if (r.ok) return r.data;
+  throw new Error(r.error);
+}
+```
+
+**Build/Project: Convert Week 8's API Client to TypeScript**
+```ts
+// api-client.ts - Week 8 project + types
+interface RequestOptions {
+  method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
+  headers?: Record<string, string>;
+  body?: unknown;
+}
+
+class ApiClient {
+  constructor(private baseUrl: string) {}
+
+  async request<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
+    const config: RequestInit = {
+      method: options.method ?? 'GET',
+      headers: { 'Content-Type': 'application/json', ...options.headers },
+      body: options.body ? JSON.stringify(options.body) : undefined
+    };
+
+    const res = await fetch(`${this.baseUrl}${endpoint}`, config);
+    if (!res.ok) {
+      const err = (await res.json().catch(() => ({}))) as { message?: string };
+      throw new Error(err.message || `HTTP ${res.status}`);
+    }
+    return res.json() as Promise<T>;
+  }
+
+  get<T>(endpoint: string) { return this.request<T>(endpoint); }
+
+  post<T>(endpoint: string, data: unknown) {
+    return this.request<T>(endpoint, { method: 'POST', body: data });
+  }
+
+  async retry<T>(fn: () => Promise<T>, attempts = 3): Promise<T> {
+    try {
+      return await fn();
+    } catch (err) {
+      if (attempts <= 1) throw err;
+      return this.retry(fn, attempts - 1);
+    }
+  }
+}
+
+// Usage - TS knows the response shape, no manual casts anywhere
+const api = new ApiClient('https://jsonplaceholder.typicode.com');
+const post = await api.get<{ id: number; title: string }>('/posts/1');
+console.log(post.title.toUpperCase());
+```
+
+---
+
+### Week 17: Node.js Internals
+
+**Interview prep:**
+- Node event loop **phases**: timers → pending callbacks → poll (I/O) → check (`setImmediate`) → close. `process.nextTick` + promises run between phases (microtasks)
+- `setImmediate` vs `setTimeout(0)`: outside I/O it's a race; inside an I/O callback, `setImmediate` always wins
+- **libuv thread pool**: 4 threads by default; `crypto`, `zlib`, `fs` heavy ops run there. `worker_threads` for JS parallelism, `cluster` to use all CPU cores
+- Streams: readable/writable/transform, `pipe()` handles **backpressure** automatically
+- Buffers, `process.argv`, exit codes, CJS vs ESM (`require` vs `import`, `.cjs`/`.mjs`)
+
+**Code to run:**
+```js
+// event-loop-order.js
+const fs = require('fs');
+
+fs.readFile(__filename, () => console.log('1: I/O callback (poll phase)'));
+
+setTimeout(() => console.log('2: timers phase'), 0);
+setImmediate(() => console.log('3: check phase'));
+
+process.nextTick(() => console.log('4: nextTick (before any phase)'));
+Promise.resolve().then(() => console.log('5: microtask'));
+
+// 4, 5 always run first. Inside an I/O callback, 3 (setImmediate) beats 2.
+```
+
+```js
+// thread-pool.js - libuv has 4 threads by default
+const crypto = require('crypto');
+
+const start = Date.now();
+for (let i = 0; i < 5; i++) {
+  crypto.pbkdf2('secret', `salt${i}`, 100_000, 64, 'sha512', () => {
+    console.log(`done ${i + 1} in ${Date.now() - start}ms`);
+  });
+}
+// First 4 finish together; the 5th waits for a free thread
+```
+
+```js
+// streams.js - pipe() applies backpressure automatically
+const { Readable, Transform } = require('stream');
+
+const upper = new Transform({
+  transform(chunk, _enc, cb) { cb(null, chunk.toString().toUpperCase()); }
+});
+
+Readable.from(['hello ', 'world\n']).pipe(upper).pipe(process.stdout);
+// HELLO WORLD
+```
+
+**Build/Project: CLI File Analyzer (streams - never loads the whole file)**
+```js
+// analyze.js - node analyze.js notes.txt
+const fs = require('fs');
+
+let words = 0;
+let lines = 0;
+
+const counter = new require('stream').Transform({
+  transform(chunk, _enc, cb) {
+    words += chunk.toString().split(/\s+/).filter(Boolean).length;
+    lines += chunk.toString().split('\n').length - 1;
+    cb();
+  }
+});
+
+fs.createReadStream(process.argv[2])
+  .pipe(counter)
+  .on('finish', () => console.log({ lines, words }));
+```
+
+```js
+// worker.js - heavy work off the main thread
+const { workerData, parentPort } = require('worker_threads');
+let sum = 0;
+for (let i = 0; i < workerData; i++) sum += i;
+parentPort.postMessage(sum);
+
+// main: new Worker('./worker.js', { workerData: 1_000_000_000 })
+```
+
+---
+
+### Week 18: Testing
+
+**Interview prep:**
+- Unit vs integration vs e2e: one function vs function+DB/network vs whole user flow
+- Jest/Vitest basics: `describe`, `test`/`it`, `expect` + matchers (`toBe`, `toEqual`, `toHaveLength`, `toThrow`)
+- **Mocks & spies**: replace network, `Date.now`, `Math.random`; assert that a function was called with `expect(fn).toHaveBeenCalledWith(...)`
+- Arrange → Act → Assert structure
+- TDD: red (failing test) → green (make it pass) → refactor
+- Write explanation of when NOT to mock (over-mocking tests your mocks, not your code)
+
+**Code to run:**
+```js
+// cart.test.js - run with: npx jest  (tests the Week 3 Shopping Cart)
+const { createCart } = require('./cart');
+
+describe('createCart', () => {
+  test('adds items and totals them', () => {
+    const cart = createCart();
+    cart.addItem('Laptop', 999).addItem('Mouse', 25);
+    expect(cart.getTotal()).toBe(1024);
+  });
+
+  test('merges duplicates instead of pushing twice', () => {
+    const cart = createCart();
+    cart.addItem('Laptop', 999).addItem('Laptop', 999);
+    expect(cart.getItems()).toHaveLength(1);
+    expect(cart.getItems()[0].qty).toBe(2);
+  });
+
+  test('keeps items private', () => {
+    const cart = createCart();
+    expect(cart.items).toBeUndefined();
+    expect(() => cart.removeItem('nope')).not.toThrow();
+  });
+
+  test('clear resets everything', () => {
+    const cart = createCart();
+    cart.addItem('A', 1).clear();
+    expect(cart.getTotal()).toBe(0);
+  });
+});
+```
+
+```js
+// weather.test.js - mock the network, test the logic
+global.fetch = jest.fn(() =>
+  Promise.resolve({ ok: true, json: () => Promise.resolve({ main: { temp: 21 } }) })
+);
+// Now test getCurrentWeather('London') -> { temp: 21 } without any real API
+```
+
+**Build/Project:** Write a full Jest suite for the Week 8 API Client + Week 9 Weather App:
+- Mock `fetch` for success, non-OK response, and network failure
+- Test `retry()`: succeeds on 3rd attempt, throws after exhaustion
+- Test WeatherApp cache hit (fetch called once, second call returns cached)
+
+---
+
+### Week 19: Networking Protocols (DNS, TCP, TLS, HTTP)
+
+**Interview prep:**
+- The full request lifecycle: **DNS lookup** → **TCP handshake** (SYN, SYN-ACK, ACK) → **TLS handshake** (ClientHello, cipher suite, cert exchange, key exchange) → **HTTP request**
+- HTTP/1.1 (one request per connection, head-of-line blocking) vs HTTP/2 (multiplexing, HPACK compression, server push) vs HTTP/3 (QUIC over UDP, no head-of-line blocking, built-in TLS)
+- Request/response structure, idempotent methods (GET/PUT/DELETE), status code families (1xx-5xx)
+- Caching headers: `Cache-Control` (max-age, no-store), `ETag`/`If-None-Match`, `Last-Modified`
+- Cookies vs headers, `Set-Cookie`, SameSite
+
+**Code to run:**
+```js
+// dns.js - what happens BEFORE any HTTP request
+const dns = require('dns').promises;
+
+(async () => {
+  const { address, family } = await dns.lookup('google.com');
+  console.log(`IP: ${address} (IPv${family})`);
+  console.log('A records:', await dns.resolve('google.com', 'A'));
+})();
+```
+
+```js
+// http-server.js - headers, cookies, caching
+const http = require('http');
+
+const server = http.createServer((req, res) => {
+  console.log(`${req.method} ${req.url}`);
+
+  const body = JSON.stringify({
+    method: req.method,
+    path: req.url,
+    userAgent: req.headers['user-agent']
+  });
+
+  res.setHeader('Content-Type', 'application/json');
+  res.setHeader('Cache-Control', 'public, max-age=60');
+  res.setHeader('Set-Cookie', 'sid=abc123; HttpOnly; SameSite=Lax');
+  res.writeHead(200);
+  res.end(body);
+});
+
+server.listen(8080, () => console.log('http://localhost:8080'));
+```
+
+```js
+// tcp.js - the transport underneath HTTP (raw echo server)
+const net = require('net');
+
+const server = net.createServer((socket) => {
+  console.log('client connected (TCP handshake complete)');
+  socket.on('data', (data) => socket.write(`echo: ${data}`));
+});
+
+server.listen(9000, () => console.log('raw TCP server on :9000'));
+```
+
+**Build/Project: Reverse Proxy with node:http**
+```js
+// proxy.js - forwards every request to a target server
+const http = require('http');
+
+const TARGET = { hostname: 'jsonplaceholder.typicode.com', port: 80 };
+
+const server = http.createServer((clientReq, clientRes) => {
+  const proxyReq = http.request(
+    {
+      hostname: TARGET.hostname,
+      port: TARGET.port,
+      path: clientReq.url,
+      method: clientReq.method
+    },
+    (targetRes) => {
+      clientRes.writeHead(targetRes.statusCode, {
+        'Content-Type': targetRes.headers['content-type']
+      });
+      targetRes.pipe(clientRes); // stream response back
+    }
+  );
+  clientReq.pipe(proxyReq); // stream request forward
+});
+
+server.listen(8080, () => console.log('proxy on :8080'));
+// curl http://localhost:8080/posts/1 -> proxied to the real API
+```
+
+---
+
+### Week 20: Caching + Queues
+
+**Interview prep:**
+- Caching strategies: **cache-aside** (check cache → miss → fetch from DB → write cache), write-through, write-back; "cache invalidation is one of the two hard things"
+- Eviction: LRU vs LFU vs FIFO, TTL expiry; Redis: `SET key val EX 60`, `INCR` (rate limiting), `SETNX` (locking), pub/sub
+- Queues: FIFO, priority, delayed jobs, **retries with exponential backoff**, dead-letter queue (DLQ)
+- Producer/worker pattern; BullMQ (Redis-backed) vs in-memory queues vs full brokers (RabbitMQ, Kafka)
+- When to prefer a queue over doing work inline (slow work, retries, decoupling, fan-out)
+
+**Code to run:**
+```js
+// lru-cache.js - least recently used eviction
+class LRUCache {
+  constructor(capacity) {
+    this.capacity = capacity;
+    this.map = new Map(); // insertion order = recency order
+  }
+
+  get(key) {
+    if (!this.map.has(key)) return -1;
+    const value = this.map.get(key);
+    this.map.delete(key);      // re-insert = mark most recent
+    this.map.set(key, value);
+    return value;
+  }
+
+  set(key, value) {
+    if (this.map.has(key)) this.map.delete(key);
+    this.map.set(key, value);
+    if (this.map.size > this.capacity) {
+      this.map.delete(this.map.keys().next().value); // evict LRU
+    }
+    return this;
+  }
+}
+
+const cache = new LRUCache(3);
+cache.set('a', 1).set('b', 2).set('c', 3);
+cache.get('a');         // 'a' becomes most recent
+cache.set('d', 4);      // evicts 'b' (least recently used)
+console.log(cache.get('b')); // -1
+```
+
+```js
+// cache-aside.js - TTL + stale check
+class TTLStore {
+  constructor(ttlMs) { this.ttlMs = ttlMs; this.store = new Map(); }
+
+  get(key) {
+    const hit = this.store.get(key);
+    if (!hit) return undefined;
+    if (Date.now() - hit.at > this.ttlMs) {
+      this.store.delete(key); // expired -> treat as miss
+      return undefined;
+    }
+    return hit.value;
+  }
+
+  set(key, value) {
+    this.store.set(key, { value, at: Date.now() });
+    return this;
+  }
+}
+
+// The core cache-aside pattern (this is what Redis is usually doing)
+async function cacheAside(store, key, fetchFn) {
+  const hit = store.get(key);
+  if (hit !== undefined) return hit;  // cache hit
+  const fresh = await fetchFn();      // cache miss -> DB/API
+  store.set(key, fresh);
+  return fresh;
+}
+```
+
+**Build/Project: Task Queue with retries + Rate Limiter**
+```js
+// job-queue.js - retries with exponential backoff + dead-letter
+class JobQueue {
+  constructor() { this.queue = []; this.failed = []; }
+
+  push(job, { retries = 3, backoffMs = 1000 } = {}) {
+    this.queue.push({ job, retries, backoffMs, attempts: 0 });
+    return this;
+  }
+
+  async process(worker) {
+    while (this.queue.length) {
+      const task = this.queue.shift();
+      try {
+        await worker(task.job);
+      } catch (err) {
+        task.attempts++;
+        if (task.attempts <= task.retries) {
+          await new Promise(r => setTimeout(r, task.backoffMs * task.attempts));
+          this.queue.push(task);      // retry, waiting longer each time
+        } else {
+          this.failed.push(task.job); // dead-letter queue
+        }
+      }
+    }
+    return { done: true, failed: this.failed.length };
+  }
+}
+
+// rate-limiter.js - sliding window (the logic behind 429 Too Many Requests)
+class RateLimiter {
+  constructor(limit, windowMs) {
+    this.limit = limit;
+    this.windowMs = windowMs;
+    this.hits = new Map(); // key -> [timestamps]
+  }
+
+  allow(key) {
+    const now = Date.now();
+    const timestamps = (this.hits.get(key) || [])
+      .filter(t => now - t < this.windowMs);
+    if (timestamps.length >= this.limit) {
+      this.hits.set(key, timestamps);
+      return false;
+    }
+    timestamps.push(now);
+    this.hits.set(key, timestamps);
+    return true;
+  }
+}
+```
+
+---
+
 ## Progress Tracker
 
 | Week | Concept | Explanation Done | Build Done | Status |
@@ -996,6 +1594,12 @@ finance-tracker/
 | 11 | DOM API | ⬜ | Todo List | ⬜ |
 | 12 | Storage + Observer | ⬜ | Infinite Scroll | ⬜ |
 | 13-14 | **BUILD PHASE** | ⬜ | Full Project | ⬜ |
+| 15 | DB + ORMs (Mongoose/Prisma) | ⬜ | Notes API | ⬜ |
+| 16 | TypeScript | ⬜ | TS API Client | ⬜ |
+| 17 | Node Internals | ⬜ | CLI Analyzer | ⬜ |
+| 18 | Testing | ⬜ | Test Suite | ⬜ |
+| 19 | Networking Protocols | ⬜ | Reverse Proxy | ⬜ |
+| 20 | Caching + Queues | ⬜ | Job Queue + Rate Limiter | ⬜ |
 
 ---
 
@@ -1010,12 +1614,13 @@ finance-tracker/
 - **Break things on purpose** - understand errors, don't fear them
 - **Each week's build becomes part of your final project**
 - **Web APIs** (Weeks 11-12) bridge core JS to real browser apps
+- **Backend stack** (Weeks 15-20) takes you from "frontend JS" to "full-stack" — DB, TypeScript, Node internals, testing, networking, caching/queues. Weeks 15, 18, 20 reuse the projects you built in Weeks 3, 8, 9
 
 ---
 
 ## Interview Confidence Check
 
-After 14 weeks, you should be able to:
+After 20 weeks, you should be able to:
 
 **Concepts (interview):**
 - [ ] Explain var/let/const differences and TDZ
@@ -1035,6 +1640,14 @@ After 14 weeks, you should be able to:
 - [ ] Implement lazy loading with Intersection Observer
 - [ ] Handle file uploads with File API
 - [ ] Understand Canvas basics for drawing
+
+**Backend stack (interview + practical):**
+- [ ] Explain Mongoose vs Prisma and when to use each; run CRUD in both
+- [ ] Explain TS structural typing, generics, unions, and narrowing
+- [ ] Explain Node event loop phases and the libuv thread pool
+- [ ] Write unit tests with mocks for your own projects
+- [ ] Walk through DNS → TCP → TLS → HTTP and HTTP/1.1 vs 2 vs 3
+- [ ] Explain cache-aside vs write-through and queue retry/backoff patterns
 
 **Building (confidence):**
 - [ ] Build a small app from scratch without tutorials

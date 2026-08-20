@@ -21,7 +21,13 @@ js-master-notes/
 ├── 09-modern-patterns/      # modern-syntax.md + js-lectures-extras.md
 ├── 10-auth-security/        # auth-security.md (JWT, sessions, OAuth, WS, attacks)
 ├── 11-webrtc/               # webrtc.md (P2P media/data, signaling, STUN/TURN)
-└── 12-websockets/           # websockets.md (protocol, rooms, heartbeat, auth, scaling)
+├── 12-websockets/           # websockets.md (protocol, rooms, heartbeat, auth, scaling)
+├── 13-db-orms/              # db-orms.md (Mongoose + Prisma, schema, populate, migrations)
+├── 14-typescript/           # typescript.md (types, generics, narrowing, utility types)
+├── 15-node-internals/       # node-internals.md (event loop, libuv, streams, workers)
+├── 16-testing/              # testing.md (unit/integration, mocks, TDD, mini test runner)
+├── 17-networking-protocols/ # networking-protocols.md (DNS, TCP, UDP, TLS, HTTP/1.1-2-3)
+└── 18-caching-queues/       # caching-queues.md (LRU, cache-aside, retries, rate limiting)
 ```
 
 Every module ships TWO interview artifacts: a code-style `*-interview-*.js` (runnable) and a text question bank `*-questions.js` (say it out loud).
@@ -44,6 +50,12 @@ Every module ships TWO interview artifacts: a code-style `*-interview-*.js` (run
 | **10-auth-security** | JWT (structure/signing/verification), sessions, refresh rotation, password hashing, OAuth2+PKCE, WebSocket auth, XSS/CSRF/CORS, token storage | [auth-security.md](10-auth-security/auth-security.md) + 12 code files (zero deps, Node built-ins) | Ongoing |
 | **11-webrtc** | P2P media/data, signaling, SDP/ICE, STUN/TURN, DataChannels, DTLS-SRTP security | [webrtc.md](11-webrtc/webrtc.md) + 8 code files (zero deps, Node built-ins) | Ongoing |
 | **12-websockets** | WebSocket protocol, rooms, broadcasting, heartbeat, auth patterns, reconnection, scaling | [websockets.md](12-websockets/websockets.md) (16 sections) + 9 code files (zero deps + ws library) | Ongoing |
+| **13-db-orms** | SQL vs NoSQL, Mongoose (schema, CRUD, hooks, virtuals, populate), Prisma (schema, migrations, relations), indexes, transactions | [db-orms.md](13-db-orms/db-orms.md) (14 sections) + 8 files (zero-dep ODM + mongoose/prisma code) | Week 15 |
+| **14-typescript** | Erasable syntax, inference, unions, structural typing, narrowing, generics, utility types, tsconfig | [typescript.md](14-typescript/typescript.md) (15 sections) + 9 files (.ts run with tsx) | Week 16 |
+| **15-node-internals** | Node architecture, event loop phases, nextTick/microtasks, libuv thread pool, worker_threads, cluster, streams, buffers | [node-internals.md](15-node-internals/node-internals.md) (15 sections) + 13 files (zero deps) | Week 17 |
+| **16-testing** | Unit/integration/e2e, AAA, matchers, mocks & spies, async tests, isolation, coverage, TDD, cart + API client suites | [testing.md](16-testing/testing.md) (13 sections) + 11 files (zero-dep mini test runner) | Week 18 |
+| **17-networking-protocols** | OSI layers, DNS, TCP handshake, UDP, TLS, HTTP methods/headers/caching, HTTP/1.1 vs 2 vs 3, proxies | [networking-protocols.md](17-networking-protocols/networking-protocols.md) (12 sections) + 9 files (zero deps, real network demos) | Week 19 |
+| **18-caching-queues** | Cache-aside, write-through/back, TTL, LRU/LFU eviction, Redis patterns, queues, retries + backoff, DLQ, rate limiting | [caching-queues.md](18-caching-queues/caching-queues.md) (14 sections) + 9 files (zero deps) | Week 20 |
 
 ---
 
@@ -148,4 +160,81 @@ Every module ships TWO interview artifacts: a code-style `*-interview-*.js` (run
 - [07-interview-websockets.js](12-websockets/07-interview-websockets.js) — 14 Q&A to say out loud
 - [08-browser-client.js](12-websockets/08-browser-client.js) — browser WebSocket API: readyState, text/binary, Blob/ArrayBuffer, event handling
 - [09-ws-library.js](12-websockets/09-ws-library.js) — production `ws` npm package quick-start (server + client + TLS + cleanup)
+
+### 13-db-orms
+- [db-orms.md](13-db-orms/db-orms.md) — SQL vs NoSQL, what an ORM/ODM is, Mongoose (Schema → Model, CRUD + operators, middleware hooks, methods/statics/virtuals, populate), Prisma (schema.prisma, migrations, Client CRUD, relations), Mongoose vs Prisma, indexes & N+1, transactions
+- [01-mini-odm.js](13-db-orms/01-mini-odm.js) — zero-dep hand-rolled ODM: what an ODM does under the hood
+- [02-mongoose-schema.js](13-db-orms/02-mongoose-schema.js) — validators, pre('save') hook, methods/statics/virtuals (needs `npm i mongoose`)
+- [03-mongoose-crud.js](13-db-orms/03-mongoose-crud.js) — CRUD + `$gte/$in/$regex`, sort/limit, `$set/$inc/$push`
+- [04-mongoose-populate.js](13-db-orms/04-mongoose-populate.js) — User/Post refs, populate, deep + virtual populate, N+1 warning
+- [05-prisma-schema.prisma](13-db-orms/05-prisma-schema.prisma) — models, enums, 1:N + explicit M:N relations, `@@index`
+- [06-prisma-client.js](13-db-orms/06-prisma-client.js) — typed CRUD, AND/OR where, include/select, P2002, `$transaction`
+- [07-query-comparison.js](13-db-orms/07-query-comparison.js) — same query in Mongoose vs Prisma side-by-side + N+1 math
+- [09-schema-visualisation.js](13-db-orms/09-schema-visualisation.js) — ASCII visualisation: SQL tables/FKs/JOIN vs NoSQL nested/embedded documents + ORM mapping
+- [08-interview-db-orms.js](13-db-orms/08-interview-db-orms.js) — 14 Q&A to say out loud
+
+### 14-typescript
+- [typescript.md](14-typescript/typescript.md) — what TS is (erasable syntax), annotations vs inference + strict, core types, unions/literals, interface vs type, structural typing, narrowing, generics, utility types, any/unknown/never, function overloads, classes, tsconfig, TS in Express + Prisma
+- [01-what-ts-compiles-to.js](14-typescript/01-what-ts-compiles-to.js) — zero-dep: .ts source vs compiled JS side-by-side
+- [02-basics.ts](14-typescript/02-basics.ts) — annotations, inference, tuples, optional, null vs undefined (`npx tsx`)
+- [03-unions-narrowing.ts](14-typescript/03-unions-narrowing.ts) — all narrowing techniques + discriminated unions
+- [04-interfaces-vs-types.ts](14-typescript/04-interfaces-vs-types.ts) — extends, unions, intersection, structural typing
+- [05-generics.ts](14-typescript/05-generics.ts) — generic functions/interfaces, `extends` constraints, defaults
+- [06-utility-types.ts](14-typescript/06-utility-types.ts) — Partial/Pick/Omit/Record/ReturnType/Parameters/Exclude
+- [07-advanced-types.ts](14-typescript/07-advanced-types.ts) — any vs unknown vs never, overloads, abstract classes
+- [08-api-client.ts](14-typescript/08-api-client.ts) — Week 16 build: generic typed ApiClient with retry (offline mock)
+- [09-interview-typescript.js](14-typescript/09-interview-typescript.js) — 14 Q&A to say out loud
+
+### 15-node-internals
+- [node-internals.md](15-node-internals/node-internals.md) — Node architecture (V8 + libuv), event loop phases, nextTick vs microtask vs macrotask, setImmediate vs setTimeout, thread pool, blocking vs non-blocking, worker_threads, cluster, streams + backpressure, buffers, process object, CJS vs ESM, EventEmitter, unhandled errors
+- [01-architecture.js](15-node-internals/01-architecture.js) — ASCII diagram: what runs where
+- [02-event-loop-order.js](15-node-internals/02-event-loop-order.js) — the classic ordering demo
+- [03-timers-race.js](15-node-internals/03-timers-race.js) — setImmediate vs setTimeout(0) inside/outside I/O
+- [04-thread-pool.js](15-node-internals/04-thread-pool.js) — 5× pbkdf2: 4 finish together, 5th waits
+- [05-blocking-vs-nonblocking.js](15-node-internals/05-blocking-vs-nonblocking.js) — sync fs stalls the loop, async doesn't
+- [06-worker-threads.js](15-node-internals/06-worker-threads.js) — CPU work off the main thread
+- [07-cluster.js](15-node-internals/07-cluster.js) — multi-core HTTP servers with per-worker counting
+- [08-streams.js](15-node-internals/08-streams.js) — pipeline, transforms, backpressure/drain
+- [09-buffers.js](15-node-internals/09-buffers.js) — Buffer.from/alloc, encodings, concat
+- [10-process-events.js](15-node-internals/10-process-events.js) — argv/env/exit codes, signals, graceful shutdown
+- [11-cjs.cjs](15-node-internals/11-cjs.cjs) + [12-esm.mjs](15-node-internals/12-esm.mjs) — same module in both systems
+- [13-interview-node-internals.js](15-node-internals/13-interview-node-internals.js) — 14 Q&A to say out loud
+
+### 16-testing
+- [testing.md](16-testing/testing.md) — why test + pyramid, AAA, matchers, minimal runner, mocks & spies, async tests, error/edge cases, isolation, coverage, TDD, cart suite, mocking network code
+- [01-mini-test-runner.js](16-testing/01-mini-test-runner.js) — zero-dep describe/test/expect framework (the repo's "Jest")
+- [02-basic-tests.js](16-testing/02-basic-tests.js) — AAA + good test names (13/13 pass)
+- [03-aaa-and-matchers.js](16-testing/03-aaa-and-matchers.js) — toBe vs toEqual, all matchers (15/15)
+- [04-mocks-spies.js](16-testing/04-mocks-spies.js) — fake fetch, monkey-patched Date.now/Math.random (5/5)
+- [05-async-tests.js](16-testing/05-async-tests.js) — promise retry, done-wrapper (7/7)
+- [06-error-edge-cases.js](16-testing/06-error-edge-cases.js) — divide-by-zero, invalid JSON, boundaries (16/16)
+- [07-isolation.js](16-testing/07-isolation.js) — flaky shared state vs per-test reset (narrated)
+- [08-tdd-example.js](16-testing/08-tdd-example.js) — red → green → refactor walkthrough
+- [09-cart-tests.js](16-testing/09-cart-tests.js) — Week 3 shopping cart suite (11/11)
+- [10-api-client-tests.js](16-testing/10-api-client-tests.js) — retry/exhaustion/404 with mock fetch (6/6)
+- [11-interview-testing.js](16-testing/11-interview-testing.js) — 14 Q&A to say out loud
+
+### 17-networking-protocols
+- [networking-protocols.md](17-networking-protocols/networking-protocols.md) — OSI/TCP-IP layers, DNS (hierarchy, records, TTL), TCP (3-way handshake, head-of-line blocking), UDP vs TCP, TLS (handshake, certs, forward secrecy), HTTP structure/status codes, caching headers, HTTP/1.1 vs 2 vs 3, HTTPS, keep-alive & pooling, proxies & load balancers
+- [01-dns.js](17-networking-protocols/01-dns.js) — lookup + A/AAAA/CNAME/MX records
+- [02-tcp-echo.js](17-networking-protocols/02-tcp-echo.js) — raw TCP echo: the handshake made visible
+- [03-udp.js](17-networking-protocols/03-udp.js) — dgram ping/pong + latency
+- [04-http-server.js](17-networking-protocols/04-http-server.js) — status codes, ETag/304, cookies, CORS
+- [05-tls-handshake.js](17-networking-protocols/05-tls-handshake.js) — real TLS1.3 handshake: cipher, ALPN, cert chain
+- [06-http2.js](17-networking-protocols/06-http2.js) — multiplexing: N requests, one socket
+- [07-http-caching.js](17-networking-protocols/07-http-caching.js) — Cache-Control/ETag/304 simulation
+- [08-proxy.js](17-networking-protocols/08-proxy.js) — Week 19 build: reverse proxy to a real API
+- [09-interview-networking.js](17-networking-protocols/09-interview-networking.js) — 14 Q&A to say out loud
+
+### 18-caching-queues
+- [caching-queues.md](18-caching-queues/caching-queues.md) — why cache, cache-aside (incl. thundering herd), write-through/back/around, TTL & invalidation, eviction policies, Redis patterns, queues (FIFO/priority/delayed), worker pools, retries + exponential backoff + jitter, dead-letter queues, delivery semantics, rate limiting
+- [01-lru-cache.js](18-caching-queues/01-lru-cache.js) — Map-based LRU with eviction log
+- [02-cache-aside.js](18-caching-queues/02-cache-aside.js) — TTL store + single-flight (5 concurrent → 1 DB hit)
+- [03-cache-policies.js](18-caching-queues/03-cache-policies.js) — write-through/back/around scenario log + crash-loss sim
+- [04-job-queue.js](18-caching-queues/04-job-queue.js) — retries, exponential backoff, dead-letter queue
+- [05-priority-queue.js](18-caching-queues/05-priority-queue.js) — FIFO vs priority
+- [06-delayed-jobs.js](18-caching-queues/06-delayed-jobs.js) — time-sorted scheduler
+- [07-rate-limiter.js](18-caching-queues/07-rate-limiter.js) — fixed window, sliding window, token bucket
+- [08-simulated-redis.js](18-caching-queues/08-simulated-redis.js) — SET/GET/EXPIRE, INCR, SETNX lock, pub/sub
+- [09-interview-caching-queues.js](18-caching-queues/09-interview-caching-queues.js) — 14 Q&A to say out loud
 
